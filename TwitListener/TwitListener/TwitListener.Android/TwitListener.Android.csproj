@@ -133,8 +133,8 @@
     <AndroidResource Include="Resources\values\styles.xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TwitListener\TwitListener.csproj">
-      <Project>{b0940695-b395-4b4d-8b1a-bccc05a0dd6e}</Project>
+    <ProjectReference Include="..\TwitListener\TwitListener.fsproj">
+      <Project>{34bee7de-3d4a-43f5-bb17-8441514bb68e}</Project>
       <Name>TwitListener</Name>
     </ProjectReference>
   </ItemGroup>
