@@ -2,17 +2,11 @@
 
 open System
 open Xamarin.Forms
+open Xamarin.Forms.Xaml
 
 type TwitListenerPage() = 
     inherit ContentPage()
-
-    do base.Content <- Label(Text = "Hello, F# Xamarin.Forms",
-                             HorizontalOptions = LayoutOptions.Center,
-                             VerticalOptions = LayoutOptions.Center,
-                             FontSize = 24.0,
-                             TextColor = Color.Pink,
-                             FontAttributes = FontAttributes.Italic,
-                             Rotation = -15.0)
+    let _ = base.LoadFromXaml(typeof<TwitListenerPage>)
 
 type App() = 
     inherit Application(MainPage = TwitListenerPage())

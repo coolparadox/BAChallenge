@@ -52,6 +52,7 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="TwitListenerPage.fs" />
     <Content Include="packages.config" />
+    <EmbeddedResource Include="TwitListenerPage.xaml" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core">
