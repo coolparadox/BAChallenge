@@ -15,28 +15,36 @@ type TwitListenerPage() =
     let _ = base.LoadFromXaml(typeof<TwitListenerPage>)
     let tweetsView = base.FindByName<ListView>("tweetsView")
     let tweetsViewItems = [
-        { Who = "@coolparadox"; When = DateTime.Now; What = "tweet this dude #partiu" }
-        { Who = "@starcrusher"; When = DateTime.Now; What = "naah I use messenger duh! Twitter SMS verification conde is soooooo slow it never reaches destiny argh" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "tweet this dude #partiu" }
-        { Who = "@starcrusher"; When = DateTime.Now; What = "naah I use messenger duh! Twitter SMS verification conde is soooooo slow it never reaches destiny argh" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "tweet this dude #partiu" }
-        { Who = "@starcrusher"; When = DateTime.Now; What = "naah I use messenger duh! Twitter SMS verification conde is soooooo slow it never reaches destiny argh" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "tweet this dude #partiu" }
-        { Who = "@starcrusher"; When = DateTime.Now; What = "naah I use messenger duh! Twitter SMS verification conde is soooooo slow it never reaches destiny argh" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "tweet this dude #partiu" }
-        { Who = "@starcrusher"; When = DateTime.Now; What = "naah I use messenger duh! Twitter SMS verification conde is soooooo slow it never reaches destiny argh" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "tweet this dude #partiu" }
-        { Who = "@starcrusher"; When = DateTime.Now; What = "naah I use messenger duh! Twitter SMS verification conde is soooooo slow it never reaches destiny argh" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "tweet this dude #partiu" }
-        { Who = "@starcrusher"; When = DateTime.Now; What = "naah I use messenger duh! Twitter SMS verification conde is soooooo slow it never reaches destiny argh" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "tweet this dude #partiu" }
-        { Who = "@starcrusher"; When = DateTime.Now; What = "naah I use messenger duh! Twitter SMS verification conde is soooooo slow it never reaches destiny argh" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "tweet this dude #partiu" }
-        { Who = "@starcrusher"; When = DateTime.Now; What = "naah I use messenger duh! Twitter SMS verification conde is soooooo slow it never reaches destiny argh" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "tweet this dude #partiu" }
-        { Who = "@starcrusher"; When = DateTime.Now; What = "naah I use messenger duh! Twitter SMS verification conde is soooooo slow it never reaches destiny argh" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "tweet this dude #partiu" }
-        { Who = "@starcrusher"; When = DateTime.Now; What = "naah I use messenger duh! Twitter SMS verification conde is soooooo slow it never reaches destiny argh" }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
+        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
+        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
+        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
+        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
+        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
+        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
+        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
+        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
+        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
+        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
+        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
     ]
     do tweetsView.ItemsSource <- ((tweetsViewItems |> List.toSeq) :> Collections.IEnumerable)
 
