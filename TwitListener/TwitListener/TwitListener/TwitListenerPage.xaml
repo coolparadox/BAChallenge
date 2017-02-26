@@ -11,10 +11,17 @@
     <ContentPage.Content>
         <StackLayout VerticalOptions="FillAndExpand"
                      HorizontalOptions="FillAndExpand"
-                     Orientation="Vertical"
-                     Spacing="15">
-            <Entry x:Name="filterEntry"
-                   Placeholder="Enter a Twitter User" />
+                     Orientation="Vertical" >
+            <Label Text="Brick Abode Twitter Listener"
+                   HorizontalTextAlignment="Center"
+                   FontAttributes="Bold"
+                   FontSize="Large"/>
+            <StackLayout Orientation="Horizontal">
+                <Entry x:Name="filterEntry"
+                   Placeholder="Enter a Twitter User"
+                   HorizontalOptions="FillAndExpand" />
+                <Button Text="Start"/>
+            </StackLayout>
             <ListView x:Name="tweetsView"
                       VerticalOptions="FillAndExpand"
                       HasUnevenRows="true" >
