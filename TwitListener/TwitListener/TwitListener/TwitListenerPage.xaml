@@ -16,16 +16,23 @@
             <Entry x:Name="filterEntry"
                    Placeholder="Enter a Twitter User" />
             <ListView x:Name="tweetsView"
-                      VerticalOptions="FillAndExpand">
+                      VerticalOptions="FillAndExpand"
+                      HasUnevenRows="true" >
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <ViewCell>
-                            <StackLayout Orientation="Vertical">
-                                <StackLayout Orientation="Horizontal">
-                                    <Label Text="{Binding Who}" />
-                                    <Label Text="{Binding When}" />
+                            <StackLayout Orientation="Vertical" >
+                                <StackLayout Orientation="Horizontal"
+                                             Padding="0,10,0,0">
+                                    <Label Text="{Binding Who}"
+                                           FontAttributes="Italic"
+                                           FontSize="Micro" />
+                                    <Label Text="{Binding When}"
+                                           FontAttributes="Italic"
+                                           FontSize="Micro" />
                                 </StackLayout>
-                                <Label Text="{Binding What}" />
+                                <Label Text="{Binding What}"
+                                       LineBreakMode="WordWrap" />
                             </StackLayout>
                         </ViewCell>
                     </DataTemplate>
