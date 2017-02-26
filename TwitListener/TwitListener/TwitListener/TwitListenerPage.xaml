@@ -8,16 +8,29 @@
                 iOS="20, 40, 20, 20"
                 Android="20, 20, 20, 20" />
   </ContentPage.Padding>
-  <ContentPage.Content>
-    <StackLayout VerticalOptions="FillAndExpand"
-                 HorizontalOptions="FillAndExpand"
-                 Orientation="Vertical"
-                 Spacing="15">
-      <Label VerticalOptions="Center" 
-             HorizontalOptions="Center"
-             Text="Hello World XAML F#" />
-
-    </StackLayout>
-  </ContentPage.Content>
-
+    <ContentPage.Content>
+        <StackLayout VerticalOptions="FillAndExpand"
+                     HorizontalOptions="FillAndExpand"
+                     Orientation="Vertical"
+                     Spacing="15">
+            <Entry x:Name="filterEntry"
+                   Placeholder="Enter a Twitter User" />
+            <ListView x:Name="tweetsView"
+                      VerticalOptions="FillAndExpand">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <StackLayout Orientation="Vertical">
+                                <StackLayout Orientation="Horizontal">
+                                    <Label Text="{Binding Who}" />
+                                    <Label Text="{Binding When}" />
+                                </StackLayout>
+                                <Label Text="{Binding What}" />
+                            </StackLayout>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackLayout>
+    </ContentPage.Content>
 </ContentPage>
