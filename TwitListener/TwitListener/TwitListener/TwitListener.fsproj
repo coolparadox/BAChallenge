@@ -50,9 +50,10 @@
   </Target>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Model.fs" />
+    <EmbeddedResource Include="TwitListenerPage.xaml" />
     <Compile Include="TwitListenerPage.fs" />
     <Content Include="packages.config" />
-    <EmbeddedResource Include="TwitListenerPage.xaml" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core">
