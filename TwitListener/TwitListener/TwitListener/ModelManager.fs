@@ -13,5 +13,7 @@ type ModelManager private () =
 
     // Add a new tweet to the Model and notify listeners.
     member this.addTweet(tweet:ModelTypes.Tweet) =
-        Model.tweets <- tweet :: Model.tweets
+        // Prepend new tweet to the list, protecting against infinite growth.
+        Model.tweets <- tweet :: List.take 500 Model.tweets
+        // Notify subscribers that tweet list was changed.
         MessagingCenter.Send<ModelManager, ModelTypes.Tweet list> (this, "onTweetListChanged", Model.tweets);
