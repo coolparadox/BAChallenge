@@ -9,16 +9,20 @@ type TwitListenerPage() =
 
     inherit ContentPage()
 
+    let modelManager = ModelManager.Instance
     let _ = base.LoadFromXaml(typeof<TwitListenerPage>)
     let tweetsView = base.FindByName<ListView>("tweetsView")
 
-    member this.OnButtonClicked(sender : Object, args : EventArgs) = 
-        ModelManager.Instance.AddTweet({Who="@coolparadox"; When=DateTime.Now; What="the quick brown fox jumps over the lazy dog"})
-
-    member this.SubscribeToEvents =
-        MessagingCenter.Subscribe<ModelManager, Model.Tweet list> (this, "onTweetListChanged",
+    // Get notified of changes in domain model.
+    // This only works if model is updated through ModelManager.
+    member this.SubscribeToModelUpdates =
+        // Refresh tweet list
+        MessagingCenter.Subscribe<ModelManager, ModelTypes.Tweet list> (this, "onTweetListChanged",
             fun _ arg -> tweetsView.ItemsSource <- ((arg |> List.toSeq) :> Collections.IEnumerable)
         )
+
+    member this.OnButtonClicked(sender : Object, args : EventArgs) = 
+        modelManager.addTweet({Who="@coolparadox"; When=DateTime.Now; What="the quick brown fox jumps over the lazy dog"})
 
 type App() = 
 
@@ -26,4 +30,5 @@ type App() =
 
     override this.OnStart() =
         base.OnStart()
-        (this.MainPage :?> TwitListenerPage).SubscribeToEvents
+        // Subscribe to changes in domain model.
+        (this.MainPage :?> TwitListenerPage).SubscribeToModelUpdates

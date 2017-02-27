@@ -1,18 +1,7 @@
-﻿namespace Model
+﻿// State variables of this application.
+module Model
 
-// A single tweet
-type Tweet = {
-    Who : string
-    When : System.DateTime
-    What : string
-} 
+// List of tweets
+let mutable tweets = List.empty<ModelTypes.Tweet>
 
-// Model singleton
-type Model private () =
-
-    static let instance = Model()
-    static member Instance = instance
-
-    // List of tweets
-    member val Tweets = List.empty<Tweet> with get,set
   

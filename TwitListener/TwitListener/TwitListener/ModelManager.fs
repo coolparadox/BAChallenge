@@ -1,9 +1,10 @@
-﻿namespace ModelManager
+﻿// Manager of the domain model.
+// Always update the domain model through ModelManager class only.
+namespace ModelManager
 
-open Model
 open Xamarin.Forms
 
-// ModelManager singleton
+// ModelManager singleton class
 type ModelManager private () =
 
     // Export this class as ModelManager.Instance
@@ -11,6 +12,6 @@ type ModelManager private () =
     static member Instance = instance
 
     // Add a new tweet to the Model and notify listeners.
-    member this.AddTweet(tweet:Model.Tweet) =
-        Model.Instance.Tweets <- tweet :: Model.Instance.Tweets
-        MessagingCenter.Send<ModelManager, Model.Tweet list> (this, "onTweetListChanged", Model.Instance.Tweets);
+    member this.addTweet(tweet:ModelTypes.Tweet) =
+        Model.tweets <- tweet :: Model.tweets
+        MessagingCenter.Send<ModelManager, ModelTypes.Tweet list> (this, "onTweetListChanged", Model.tweets);

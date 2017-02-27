@@ -50,6 +50,7 @@
   </Target>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="ModelTypes.fs" />
     <Compile Include="Model.fs" />
     <Compile Include="ModelManager.fs" />
     <EmbeddedResource Include="TwitListenerPage.xaml" />
