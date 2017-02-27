@@ -20,7 +20,8 @@
                 <Entry x:Name="filterEntry"
                    Placeholder="Enter a Twitter User"
                    HorizontalOptions="FillAndExpand" />
-                <Button Text="Start"/>
+                <Button Text="Start"
+                        Clicked="OnButtonClicked"/>
             </StackLayout>
             <ListView x:Name="tweetsView"
                       VerticalOptions="FillAndExpand"

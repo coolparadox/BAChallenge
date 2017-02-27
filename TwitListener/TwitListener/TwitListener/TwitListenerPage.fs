@@ -4,49 +4,29 @@ open System
 open Xamarin.Forms
 open Xamarin.Forms.Xaml
 
-type TweetsViewItem = {
-    Who : string
-    When : DateTime
-    What : string
-}
+// FIXME: move to Model layer
+type TweetsViewItem(user:string, timestamp:DateTime, message:string) = 
+    member this.Who = user
+    member this.When = timestamp
+    member this.What = message
  
 type TwitListenerPage() = 
+
     inherit ContentPage()
+
     let _ = base.LoadFromXaml(typeof<TwitListenerPage>)
     let tweetsView = base.FindByName<ListView>("tweetsView")
-    let tweetsViewItems = [
-        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
-        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
-        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
-        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
-        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
-        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
-        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
-        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
-        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
-        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "the quick brown fox jumps over the lazy dog" }
-        { Who = "@noblame"; When = DateTime.Now; What = "I have to write a lengthy tweet in order to exercise multiline text in ListView. Oh my what ever should I type @coolparadox?" }
-        { Who = "@coolparadox"; When = DateTime.Now; What = "I want to tell you an UDP joke, but I'm afraid you won't get it." }
+
+    // FIXME: remove bogus data
+    let mutable tweetsViewItems = [
+        TweetsViewItem("@coolparadox", DateTime.Now, "the quick brown fox jumps over the lazy dog")
     ]
     do tweetsView.ItemsSource <- ((tweetsViewItems |> List.toSeq) :> Collections.IEnumerable)
+
+    member this.OnButtonClicked(sender : Object, args : EventArgs) = 
+        let newTweets = TweetsViewItem("@starcrusher", DateTime.Now, "yo bro kkk") :: tweetsViewItems
+        tweetsViewItems <- newTweets
+        do tweetsView.ItemsSource <- ((tweetsViewItems |> List.toSeq) :> Collections.IEnumerable)
 
 type App() = 
     inherit Application(MainPage = TwitListenerPage())
