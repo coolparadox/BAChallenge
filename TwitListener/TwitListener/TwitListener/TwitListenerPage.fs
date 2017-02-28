@@ -7,8 +7,9 @@ open Xamarin.Forms
 open Xamarin.Forms.Xaml
  
 type TwitListenerPage() = 
-
     inherit ContentPage()
+
+    let businessManager = BusinessManager.Instance()
 
     // Setup and reference UI components
     let _ = base.LoadFromXaml(typeof<TwitListenerPage>)
@@ -19,15 +20,20 @@ type TwitListenerPage() =
     // Propagate changes in application state to UI components.
     member this.OnApplicationStateChanged(state:ApplicationState) =
         match state with
+            | ApplicationState.Authenticating ->
+                filterEntry.IsEnabled <- false
+                actionButton.Text <- "Start"
+                actionButton.IsEnabled <- false
+                tweetsView.IsEnabled <- false
             | ApplicationState.Authenticated ->
                 filterEntry.IsEnabled <- true
                 actionButton.Text <- "Start"
                 actionButton.IsEnabled <- true
                 tweetsView.IsEnabled <- false
             | _ ->
-                filterEntry.IsEnabled <- true
+                filterEntry.IsEnabled <- false
                 actionButton.Text <- "Start"
-                actionButton.IsEnabled <- true
+                actionButton.IsEnabled <- false
                 tweetsView.IsEnabled <- false
 
     // Handle updates in tweet list.
@@ -38,7 +44,7 @@ type TwitListenerPage() =
     member this.SubscribeToModelUpdates() =
 
         // Subscribe to changes in application state.
-        this.OnApplicationStateChanged(ApplicationState.Initial)
+        this.OnApplicationStateChanged(ApplicationState.LoggedOff)
         MessagingCenter.Subscribe<BusinessManager, ApplicationState> (this, "onApplicationStateChanged",
             fun _ state -> this.OnApplicationStateChanged(state)
         )
@@ -54,12 +60,17 @@ type TwitListenerPage() =
         let message = "This is a simple Twitter stream API exerciser by coolparadox@gmail.com"
         this.DisplayAlert ("Twitter Listener", message, "OK") |> ignore
 
+    // Handle click of 'Sign In' menu option.
+    member this.OnSignInOptionClicked() =
+        businessManager.signIn(this)
+
     // Handle window uncovering.
     override this.OnAppearing() =
         base.OnAppearing()
         // Build toolbar.
         this.ToolbarItems.Clear()
-        this.ToolbarItems.Add(ToolbarItem("About", "", (fun _ -> this.OnAboutOptionClicked()), ToolbarItemOrder.Secondary, 1))
+        this.ToolbarItems.Add(ToolbarItem("Sign In", "", (fun _ -> this.OnSignInOptionClicked()), ToolbarItemOrder.Default, 0))
+        this.ToolbarItems.Add(ToolbarItem("About", "", (fun _ -> this.OnAboutOptionClicked()), ToolbarItemOrder.Default, 10))
 
     // Handle click of action button.
     member this.OnActionButtonClicked(sender : Object, args : EventArgs) = 
@@ -71,6 +82,13 @@ type App() =
 
     inherit Application(MainPage = NavigationPage(TwitListenerPage()))
 
+    let navigationPage = base.MainPage :?> NavigationPage
+
+    // Handle Pin request from BusinessManager
+    member this.getPinFromUser() =
+        navigationPage.PushAsync(PinEntryPage(), true) |> ignore
+
+    // Handle application start
     override this.OnStart() =
         base.OnStart()
 
@@ -78,6 +96,9 @@ type App() =
         let navigationPage = this.MainPage :?> NavigationPage
         NavigationPage.SetHasNavigationBar(navigationPage, false)
 
-        // Subscribe content page to events from domain model.
+        // Subscribe navigation page to Pin requests from BusinessManager
+        MessagingCenter.Subscribe<BusinessManager> (this, "getPinFromUser", (fun _ -> this.getPinFromUser()))
+
+        // Subscribe main content page to changes in domain model.
         let twitListenerPage = navigationPage.CurrentPage :?> TwitListenerPage
         twitListenerPage.SubscribeToModelUpdates()

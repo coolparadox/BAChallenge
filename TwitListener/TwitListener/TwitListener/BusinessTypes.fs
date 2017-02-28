@@ -2,8 +2,10 @@
 
 // Application states
 type ApplicationState =
-    | Initial = 0
-    | Authenticated = 1
+    | LoggedOff = 0
+    | Authenticating = 1
+    | Authenticated = 2
+    | Listening = 3
 
 // A single tweet
 type Tweet = {
