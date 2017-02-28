@@ -1,5 +1,5 @@
 ﻿// Manager of the domain model.
-// Always update the domain model through ModelManager class only.
+// This is the interface to this application domain model.
 namespace ModelManager
 
 open Xamarin.Forms
@@ -11,7 +11,14 @@ type ModelManager private () =
     static let instance = ModelManager()
     static member Instance = instance
 
-    // Add a new tweet to the Model and notify listeners.
+    // Change application state.
+    member this.SetApplicationState(state:ModelTypes.State) =
+        if state <> Model.state then
+            Model.state <- state
+            // Notify subscribers that application state was changed.
+            MessagingCenter.Send<ModelManager, ModelTypes.State> (this, "onApplicationStateChanged", Model.state);
+
+    // Add a new tweet.
     member this.addTweet(tweet:ModelTypes.Tweet) =
         // Prepend new tweet to the list, protecting against infinite growth.
         Model.tweets <- tweet :: AuxFuncs.take 500 Model.tweets

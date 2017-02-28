@@ -18,14 +18,18 @@
                    FontSize="Large"/>
             <StackLayout Orientation="Horizontal">
                 <Entry x:Name="filterEntry"
-                   Placeholder="Enter a Twitter User"
-                   HorizontalOptions="FillAndExpand" />
-                <Button Text="Start"
-                        Clicked="OnButtonClicked"/>
+                       Placeholder="Enter a Twitter User"
+                       HorizontalOptions="FillAndExpand"
+                       IsEnabled="false"/>
+                <Button x:Name="actionButton"
+                        IsEnabled="false"
+                        Text="Start"
+                        Clicked="OnActionButtonClicked"/>
             </StackLayout>
             <ListView x:Name="tweetsView"
                       VerticalOptions="FillAndExpand"
-                      HasUnevenRows="true" >
+                      HasUnevenRows="true"
+                      IsEnabled="false">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <ViewCell>
