@@ -1,6 +1,7 @@
 ﻿namespace TwitListener
 
-open ModelManager
+open BusinessLogic
+open BusinessLogic.Types
 open System
 open Xamarin.Forms
 open Xamarin.Forms.Xaml
@@ -9,7 +10,7 @@ type TwitListenerPage() =
 
     inherit ContentPage()
 
-    let modelManager = ModelManager.Instance
+    //let businessManager = ModelManager.Instance
 
     let _ = base.LoadFromXaml(typeof<TwitListenerPage>)
     let filterEntry = base.FindByName<Entry>("filterEntry")
@@ -17,9 +18,9 @@ type TwitListenerPage() =
     let tweetsView = base.FindByName<ListView>("tweetsView")
 
     // Propagate changes in application state to UI components.
-    member this.OnApplicationStateChanged(state:ModelTypes.State) =
+    member this.OnApplicationStateChanged(state:ApplicationState) =
         match state with
-            | ModelTypes.State.Authenticated ->
+            | ApplicationState.Authenticated ->
                 filterEntry.IsEnabled <- true
                 actionButton.Text <- "Start"
                 actionButton.IsEnabled <- true
@@ -31,21 +32,21 @@ type TwitListenerPage() =
                 tweetsView.IsEnabled <- false
 
     // Handle updates in tweet list.
-    member this.OnTweetListChanged(tweets:ModelTypes.Tweet list) =
+    member this.OnTweetListChanged(tweets:Tweet list) =
         tweetsView.ItemsSource <- ((tweets |> List.toSeq) :> Collections.IEnumerable)
 
     // Get notified by ModelManager of changes in domain model.
     member this.SubscribeToModelUpdates() =
 
         // Subscribe to changes in application state.
-        this.OnApplicationStateChanged(ModelTypes.State.Initial)
-        MessagingCenter.Subscribe<ModelManager, ModelTypes.State> (this, "onApplicationStateChanged",
+        this.OnApplicationStateChanged(ApplicationState.Initial)
+        MessagingCenter.Subscribe<BusinessManager, ApplicationState> (this, "onApplicationStateChanged",
             fun _ state -> this.OnApplicationStateChanged(state)
         )
 
         // Subscribe to changes in tweet list.
         this.OnTweetListChanged([])
-        MessagingCenter.Subscribe<ModelManager, ModelTypes.Tweet list> (this, "onTweetListChanged",
+        MessagingCenter.Subscribe<BusinessManager, Tweet list> (this, "onTweetListChanged",
             fun _ tweets -> this.OnTweetListChanged(tweets)
         )
 

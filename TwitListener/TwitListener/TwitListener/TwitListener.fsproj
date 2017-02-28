@@ -52,9 +52,9 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="AuxFuncs.fs" />
-    <Compile Include="ModelTypes.fs" />
-    <Compile Include="Model.fs" />
-    <Compile Include="ModelManager.fs" />
+    <Compile Include="BusinessTypes.fs" />
+    <Compile Include="BusinessModel.fs" />
+    <Compile Include="BusinessLogic.fs" />
     <EmbeddedResource Include="TwitListenerPage.xaml" />
     <Compile Include="TwitListenerPage.fs" />
     <Content Include="packages.config" />

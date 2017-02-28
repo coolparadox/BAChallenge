@@ -1,8 +1,7 @@
-﻿// Types used by our domain model.
-module ModelTypes
+﻿namespace BusinessLogic.Types
 
 // Application states
-type State =
+type ApplicationState =
     | Initial = 0
     | Authenticated = 1
 
