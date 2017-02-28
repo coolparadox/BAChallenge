@@ -10,8 +10,7 @@ type TwitListenerPage() =
 
     inherit ContentPage()
 
-    //let businessManager = ModelManager.Instance
-
+    // Setup and reference UI components
     let _ = base.LoadFromXaml(typeof<TwitListenerPage>)
     let filterEntry = base.FindByName<Entry>("filterEntry")
     let actionButton = base.FindByName<Button>("actionButton")
@@ -35,7 +34,7 @@ type TwitListenerPage() =
     member this.OnTweetListChanged(tweets:Tweet list) =
         tweetsView.ItemsSource <- ((tweets |> List.toSeq) :> Collections.IEnumerable)
 
-    // Get notified by ModelManager of changes in domain model.
+    // Get notified of changes in domain model.
     member this.SubscribeToModelUpdates() =
 
         // Subscribe to changes in application state.
