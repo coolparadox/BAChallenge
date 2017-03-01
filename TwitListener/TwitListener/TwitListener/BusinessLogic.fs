@@ -53,6 +53,10 @@ type BusinessManager private () =
         if mState = ApplicationState.Authenticating then
             this.setApplicationState(ApplicationState.LoggedOff)
 
+    // Are we authenticating?
+    member this.isAuthenticating() =
+        mState = ApplicationState.Authenticating
+
     // Are we authenticated?
     member this.isAuthenticated() =
         mState >= ApplicationState.Authenticated
