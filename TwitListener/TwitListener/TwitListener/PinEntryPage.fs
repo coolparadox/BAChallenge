@@ -21,8 +21,8 @@ type PinEntryPage() =
 
     // Handle click of 'Ok' button.
     member this.onOkButtonClicked(sender:Object, args:EventArgs) = 
-        businessManager.gotPinFromUser(pinEntry.Text)
+        businessManager.GotPinFromUser(pinEntry.Text)
 
     // Handle click of 'Cancel' button.
     member this.onCancelButtonClicked(sender:Object, args:EventArgs) = 
-        businessManager.cancelAuthentication()
+        businessManager.CancelAuthentication()

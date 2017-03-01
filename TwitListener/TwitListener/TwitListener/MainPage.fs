@@ -71,7 +71,7 @@ type MainPage() =
 
     // Handle click of 'Sign In' menu option.
     member this.OnSignInOptionClicked() =
-        businessManager.signIn(this)
+        businessManager.StartSignIn()
 
     // Handle click of 'Sign Out' menu option.
     member this.OnSignOutOptionClicked() =
@@ -83,15 +83,15 @@ type MainPage() =
 
         // Build toolbar.
         this.ToolbarItems.Clear()
-        if businessManager.isAuthenticated() then
+        if businessManager.IsAuthenticated() then
             this.ToolbarItems.Add(ToolbarItem("Sign Out", "", (fun _ -> this.OnSignOutOptionClicked()), ToolbarItemOrder.Default, 0))
         else
             this.ToolbarItems.Add(ToolbarItem("Sign In", "", (fun _ -> this.OnSignInOptionClicked()), ToolbarItemOrder.Default, 0))
         this.ToolbarItems.Add(ToolbarItem("About", "", (fun _ -> this.OnAboutOptionClicked()), ToolbarItemOrder.Default, 10))
 
         // Check if pin entry dialog has been cancelled by OS back button.
-        if businessManager.isAuthenticating() then
-            businessManager.cancelAuthentication()
+        if businessManager.IsAuthenticating() then
+            businessManager.CancelAuthentication()
 
     // Handle click of action button.
     member this.OnActionButtonClicked(sender : Object, args : EventArgs) = 

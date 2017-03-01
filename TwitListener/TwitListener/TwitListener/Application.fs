@@ -24,6 +24,7 @@ type App() =
 
     // Handle application start
     override this.OnStart() =
+        System.Diagnostics.Debug.WriteLine("OnStart()");
         base.OnStart()
 
         // Customise navigation page.
@@ -40,3 +41,15 @@ type App() =
 
         // Subscribe main content page to changes in domain model.
         twitListenerPage.SubscribeToModelUpdates()
+
+    // Handle application sleep
+    override this.OnSleep() =
+        System.Diagnostics.Debug.WriteLine("OnSleep()");
+        BusinessManager.Instance().SaveState()
+        base.OnSleep()
+
+    // Handle application resume
+    override this.OnResume() =
+        System.Diagnostics.Debug.WriteLine("OnResume()");
+        BusinessManager.Instance().LoadState()
+        base.OnResume()

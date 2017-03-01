@@ -54,12 +54,14 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="AuxFuncs.fs" />
     <Compile Include="BusinessTypes.fs" />
+    <Compile Include="TwitterTypes.fs" />
+    <Compile Include="TwitterService.fs" />
     <Compile Include="BusinessLogic.fs" />
     <EmbeddedResource Include="PinEntryPage.xaml" />
     <Compile Include="PinEntryPage.fs" />
     <EmbeddedResource Include="MainPage.xaml" />
     <Compile Include="MainPage.fs" />
-    <Compile Include="TwitListenerApp.fs" />
+    <Compile Include="Application.fs" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
