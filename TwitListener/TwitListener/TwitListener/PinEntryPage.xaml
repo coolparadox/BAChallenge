@@ -17,9 +17,11 @@
              FontSize="Large"/>
       <Entry x:Name="pinEntry"
              Placeholder="Enter PIN"
-             HorizontalOptions="FillAndExpand" />
+             HorizontalOptions="FillAndExpand"
+             TextChanged="onPinEntryTextChanged"/>
       <StackLayout Orientation="Horizontal">
         <Button x:Name="okButton"
+                IsEnabled="false"
                 Text="OK"
                 Clicked="onOkButtonClicked"/>
         <Button x:Name="cancelButton"

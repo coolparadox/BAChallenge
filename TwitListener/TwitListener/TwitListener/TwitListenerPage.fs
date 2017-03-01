@@ -18,7 +18,7 @@ type TwitListenerPage() =
     let tweetsView = base.FindByName<ListView>("tweetsView")
 
     // Propagate changes in application state to UI components.
-    member this.OnApplicationStateChanged(state:ApplicationState) =
+    member this.onApplicationStateChanged(state:ApplicationState) =
         match state with
             | ApplicationState.Authenticating ->
                 filterEntry.IsEnabled <- false
@@ -36,23 +36,32 @@ type TwitListenerPage() =
                 actionButton.IsEnabled <- false
                 tweetsView.IsEnabled <- false
 
+    // Warn about failure in authentication.
+    member this.onAuthenticationFailed() =
+        this.DisplayAlert ("Warning", "Authentication failed", "Ok") |> ignore
+
     // Handle updates in tweet list.
-    member this.OnTweetListChanged(tweets:Tweet list) =
+    member this.onTweetListChanged(tweets:Tweet list) =
         tweetsView.ItemsSource <- ((tweets |> List.toSeq) :> Collections.IEnumerable)
 
     // Get notified of changes in domain model.
     member this.SubscribeToModelUpdates() =
 
         // Subscribe to changes in application state.
-        this.OnApplicationStateChanged(ApplicationState.LoggedOff)
+        this.onApplicationStateChanged(ApplicationState.LoggedOff)
         MessagingCenter.Subscribe<BusinessManager, ApplicationState> (this, "onApplicationStateChanged",
-            fun _ state -> this.OnApplicationStateChanged(state)
+            fun _ state -> this.onApplicationStateChanged(state)
+        )
+
+        // Subscribe to authentication failed events.
+        MessagingCenter.Subscribe<BusinessManager> (this, "authenticationFailed",
+            fun _ -> this.onAuthenticationFailed()
         )
 
         // Subscribe to changes in tweet list.
-        this.OnTweetListChanged([])
+        this.onTweetListChanged([])
         MessagingCenter.Subscribe<BusinessManager, Tweet list> (this, "onTweetListChanged",
-            fun _ tweets -> this.OnTweetListChanged(tweets)
+            fun _ tweets -> this.onTweetListChanged(tweets)
         )
 
     // Handle click of 'About' menu option.
@@ -64,12 +73,19 @@ type TwitListenerPage() =
     member this.OnSignInOptionClicked() =
         businessManager.signIn(this)
 
+    // Handle click of 'Sign Out' menu option.
+    member this.OnSignOutOptionClicked() =
+        this.DisplayAlert ("FIXME", "not yet implemented", "Bummer") |> ignore
+
     // Handle window uncovering.
     override this.OnAppearing() =
         base.OnAppearing()
         // Build toolbar.
         this.ToolbarItems.Clear()
-        this.ToolbarItems.Add(ToolbarItem("Sign In", "", (fun _ -> this.OnSignInOptionClicked()), ToolbarItemOrder.Default, 0))
+        if businessManager.isAuthenticated() then
+            this.ToolbarItems.Add(ToolbarItem("Sign Out", "", (fun _ -> this.OnSignOutOptionClicked()), ToolbarItemOrder.Default, 0))
+        else
+            this.ToolbarItems.Add(ToolbarItem("Sign In", "", (fun _ -> this.OnSignInOptionClicked()), ToolbarItemOrder.Default, 0))
         this.ToolbarItems.Add(ToolbarItem("About", "", (fun _ -> this.OnAboutOptionClicked()), ToolbarItemOrder.Default, 10))
 
     // Handle click of action button.
@@ -83,22 +99,34 @@ type App() =
     inherit Application(MainPage = NavigationPage(TwitListenerPage()))
 
     let navigationPage = base.MainPage :?> NavigationPage
+    let twitListenerPage = navigationPage.CurrentPage :?> TwitListenerPage
+    let pinEntryPage = PinEntryPage()
 
     // Handle Pin request from BusinessManager
     member this.getPinFromUser() =
-        navigationPage.PushAsync(PinEntryPage(), true) |> ignore
+        navigationPage.PushAsync(pinEntryPage) |> ignore
+
+    // Handle application state changes
+    member this.OnApplicationStateChanged(state:ApplicationState) =
+        if state <> ApplicationState.Authenticating then
+            if navigationPage.CurrentPage.GetType() = typeof<PinEntryPage> then
+                navigationPage.PopToRootAsync() |> ignore
 
     // Handle application start
     override this.OnStart() =
         base.OnStart()
 
-        // Disable navigation bar.
-        let navigationPage = this.MainPage :?> NavigationPage
+        // Customise navigation page.
         NavigationPage.SetHasNavigationBar(navigationPage, false)
+        NavigationPage.SetHasBackButton(pinEntryPage, false)
 
-        // Subscribe navigation page to Pin requests from BusinessManager
+        // Subscribe to Pin requests from BusinessManager
         MessagingCenter.Subscribe<BusinessManager> (this, "getPinFromUser", (fun _ -> this.getPinFromUser()))
 
+        // Subscribe to application state changes from BusinessManager
+        MessagingCenter.Subscribe<BusinessManager, ApplicationState> (this, "onApplicationStateChanged",
+            fun _ state -> this.OnApplicationStateChanged(state)
+        )
+
         // Subscribe main content page to changes in domain model.
-        let twitListenerPage = navigationPage.CurrentPage :?> TwitListenerPage
         twitListenerPage.SubscribeToModelUpdates()

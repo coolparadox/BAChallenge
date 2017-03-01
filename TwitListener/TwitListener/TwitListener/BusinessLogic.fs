@@ -35,12 +35,27 @@ type BusinessManager private () =
             //Device.OpenUri(System.Uri(authenticationContext.Value.AuthorizationURL))
             MessagingCenter.Send<BusinessManager>(this, "getPinFromUser")
 
-    // Continue Pin authentication.
+    // Continue an ongoing (Pin) authentication.
     member this.gotPinFromUser(pin:string) =
         if mState = ApplicationState.Authenticating then
             let userCredentials = Tweetinvi.AuthFlow.CreateCredentialsFromVerifierCode(pin, authenticationContext.Value)
-            Tweetinvi.Auth.SetCredentials(userCredentials)
+            match userCredentials with
+            | null ->
+                this.setApplicationState(ApplicationState.LoggedOff)
+                MessagingCenter.Send<BusinessManager>(this, "authenticationFailed")
+            | _ ->
+            //Tweetinvi.Auth.SetCredentials(userCredentials)
+            //let authenticatedUser = Tweetinvi.User.GetAuthenticatedUser()
             this.setApplicationState(ApplicationState.Authenticated)
+
+    // Cancel an ongoing (Pin) authentication.
+    member this.cancelAuthentication() =
+        if mState = ApplicationState.Authenticating then
+            this.setApplicationState(ApplicationState.LoggedOff)
+
+    // Are we authenticated?
+    member this.isAuthenticated() =
+        mState >= ApplicationState.Authenticated
 
     // Add a new tweet.
     member this.addTweet(tweet:Tweet) =

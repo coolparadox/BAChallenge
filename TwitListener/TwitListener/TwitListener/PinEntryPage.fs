@@ -11,33 +11,18 @@ type PinEntryPage() =
     let businessManager = BusinessManager.Instance()
 
     // Setup and reference UI components
-    (*
-    let baseContent = StackLayout(
-                          Orientation = StackOrientation.Vertical, 
-                          VerticalOptions = LayoutOptions.FillAndExpand
-                      )
-    do
-        baseContent.Children.Add(
-            Label(
-                Text = "Twitter Sign In",
-                HorizontalTextAlignment = TextAlignment.Center,
-                FontSize = Device.GetNamedSize(NamedSize.Large, typeof<Label>)
-            )
-        )
-        baseContent.Children.Add(
-            EntryCell(
-                Keyboard = Keyboard.Numeric,
-
-            )
-        )
-        *)
     let _ = base.LoadFromXaml(typeof<PinEntryPage>)
-    //let pinEntry = base.FindByName<Entry>("pinEntry")
+    let pinEntry = base.FindByName<Entry>("pinEntry")
+    let okButton = base.FindByName<Button>("okButton")
+
+    // Handle change of pin entry content.
+    member this.onPinEntryTextChanged(sender:Object, args:EventArgs) = 
+        okButton.IsEnabled <- String.length(pinEntry.Text) > 0
 
     // Handle click of 'Ok' button.
-    member this.onOkButtonClicked(sender : Object, args : EventArgs) = 
-        true |> ignore
+    member this.onOkButtonClicked(sender:Object, args:EventArgs) = 
+        businessManager.gotPinFromUser(pinEntry.Text)
 
     // Handle click of 'Cancel' button.
-    member this.onCancelButtonClicked(sender : Object, args : EventArgs) = 
-        true |> ignore
+    member this.onCancelButtonClicked(sender:Object, args:EventArgs) = 
+        businessManager.cancelAuthentication()
