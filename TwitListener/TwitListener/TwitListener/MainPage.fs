@@ -17,6 +17,15 @@ type MainPage() =
     let actionButton = base.FindByName<Button>("actionButton")
     let tweetsView = base.FindByName<ListView>("tweetsView")
 
+    // Refresh toolbar.
+    member this.RefreshToolbar() =
+        this.ToolbarItems.Clear()
+        if businessManager.IsAuthenticated() then
+            this.ToolbarItems.Add(ToolbarItem("Sign Out", "", (fun _ -> this.OnSignOutOptionClicked()), ToolbarItemOrder.Default, 0))
+        else
+            this.ToolbarItems.Add(ToolbarItem("Sign In", "", (fun _ -> this.OnSignInOptionClicked()), ToolbarItemOrder.Default, 0))
+        this.ToolbarItems.Add(ToolbarItem("About", "", (fun _ -> this.OnAboutOptionClicked()), ToolbarItemOrder.Default, 10))
+
     // Propagate changes in application state to UI components.
     member this.onApplicationStateChanged(state:ApplicationState) =
         match state with
@@ -35,10 +44,11 @@ type MainPage() =
                 actionButton.Text <- "Start"
                 actionButton.IsEnabled <- false
                 tweetsView.IsEnabled <- false
+        this.RefreshToolbar()
 
     // Warn about failure in authentication.
-    member this.onAuthenticationFailed() =
-        this.DisplayAlert ("Warning", "Authentication failed", "Ok") |> ignore
+    member this.onDisplayWarningRequest(message:string) =
+        this.DisplayAlert ("Warning", message, "Ok") |> ignore
 
     // Handle updates in tweet list.
     member this.onTweetListChanged(tweets:Tweet list) =
@@ -49,17 +59,20 @@ type MainPage() =
 
         // Subscribe to changes in application state.
         this.onApplicationStateChanged(ApplicationState.LoggedOff)
-        MessagingCenter.Subscribe<BusinessManager, ApplicationState> (this, "onApplicationStateChanged",
+        MessagingCenter.Unsubscribe<BusinessManager, ApplicationState>(this, "onApplicationStateChanged")
+        MessagingCenter.Subscribe<BusinessManager, ApplicationState>(this, "onApplicationStateChanged",
             fun _ state -> this.onApplicationStateChanged(state)
         )
 
         // Subscribe to authentication failed events.
-        MessagingCenter.Subscribe<BusinessManager> (this, "authenticationFailed",
-            fun _ -> this.onAuthenticationFailed()
+        MessagingCenter.Unsubscribe<BusinessManager, string>(this, "displayWarningRequest")
+        MessagingCenter.Subscribe<BusinessManager, string>(this, "displayWarningRequest",
+            fun _ message -> this.onDisplayWarningRequest(message)
         )
 
         // Subscribe to changes in tweet list.
         this.onTweetListChanged([])
+        MessagingCenter.Unsubscribe<BusinessManager, Tweet list>(this, "onTweetListChanged")
         MessagingCenter.Subscribe<BusinessManager, Tweet list> (this, "onTweetListChanged",
             fun _ tweets -> this.onTweetListChanged(tweets)
         )
@@ -80,21 +93,8 @@ type MainPage() =
     // Handle window uncovering.
     override this.OnAppearing() =
         base.OnAppearing()
-
-        // Build toolbar.
-        this.ToolbarItems.Clear()
-        if businessManager.IsAuthenticated() then
-            this.ToolbarItems.Add(ToolbarItem("Sign Out", "", (fun _ -> this.OnSignOutOptionClicked()), ToolbarItemOrder.Default, 0))
-        else
-            this.ToolbarItems.Add(ToolbarItem("Sign In", "", (fun _ -> this.OnSignInOptionClicked()), ToolbarItemOrder.Default, 0))
-        this.ToolbarItems.Add(ToolbarItem("About", "", (fun _ -> this.OnAboutOptionClicked()), ToolbarItemOrder.Default, 10))
-
-        // Check if pin entry dialog has been cancelled by OS back button.
-        if businessManager.IsAuthenticating() then
-            businessManager.CancelAuthentication()
+        this.RefreshToolbar()
 
     // Handle click of action button.
     member this.OnActionButtonClicked(sender : Object, args : EventArgs) = 
-        //modelManager.addTweet({Who="@coolparadox"; When=DateTime.Now; What="the quick brown fox jumps over the lazy dog"})
-        //modelManager.SetApplicationState(ModelTypes.State.Authenticated)
-        this.DisplayAlert("FIXME", "Authenticate and start streaming dude!", "Yeah...") |> ignore
+        this.DisplayAlert ("FIXME", "not yet implemented", "Bummer") |> ignore

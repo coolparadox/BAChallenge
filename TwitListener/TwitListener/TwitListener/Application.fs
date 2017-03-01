@@ -8,48 +8,69 @@ type App() =
 
     inherit Application(MainPage = NavigationPage(MainPage()))
 
-    let navigationPage = base.MainPage :?> NavigationPage
-    let twitListenerPage = navigationPage.CurrentPage :?> MainPage
+    let myNav = base.MainPage :?> NavigationPage
+    let mainPage = myNav.CurrentPage :?> MainPage
     let pinEntryPage = PinEntryPage()
 
     // Handle Pin request from BusinessManager
     member this.getPinFromUser() =
-        navigationPage.PushAsync(pinEntryPage) |> ignore
+        myNav.PushAsync(pinEntryPage) |> ignore
 
     // Handle application state changes
     member this.OnApplicationStateChanged(state:ApplicationState) =
         if state <> ApplicationState.Authenticating then
-            if navigationPage.CurrentPage.GetType() = typeof<PinEntryPage> then
-                navigationPage.PopToRootAsync() |> ignore
+            if myNav.CurrentPage.GetType() = typeof<PinEntryPage> then
+                myNav.PopToRootAsync() |> ignore
+
+    member this.OnPopped(nav:NavigationPage, args:NavigationEventArgs) =
+        System.Diagnostics.Debug.WriteLine("onPopped()")
+        if args.Page.GetType() = typeof<PinEntryPage> then
+            let pinEntryPage = args.Page :?> PinEntryPage
+            match pinEntryPage.GetPin() with
+                | None ->
+                    BusinessManager.Instance().CancelAuthentication()
+                | Some pin ->
+                    BusinessManager.Instance().GotPinFromUser(pin)
+
+    // Configure app and navigation page
+    member this.SetupApp() =
+
+        //// Customise navigation page.
+        //MyNavPage.SetHasNavigationBar(myNav, false)
+        //MyNavPage.SetHasBackButton(pinEntryPage, false)
+
+        // Subscribe to Pin requests from BusinessManager
+        MessagingCenter.Unsubscribe<BusinessManager>(this, "getPinFromUser")
+        MessagingCenter.Subscribe<BusinessManager>(this, "getPinFromUser", (fun _ -> this.getPinFromUser()))
+
+        // Subscribe to application state changes from BusinessManager
+        MessagingCenter.Unsubscribe<BusinessManager, ApplicationState>(this, "onApplicationStateChanged")
+        MessagingCenter.Subscribe<BusinessManager, ApplicationState>(this, "onApplicationStateChanged",
+            fun _ state -> this.OnApplicationStateChanged(state)
+        )
+
+        // Subscribe main content page to changes in domain model.
+        mainPage.SubscribeToModelUpdates()
 
     // Handle application start
     override this.OnStart() =
         System.Diagnostics.Debug.WriteLine("OnStart()");
         base.OnStart()
-
-        // Customise navigation page.
-        NavigationPage.SetHasNavigationBar(navigationPage, false)
-        NavigationPage.SetHasBackButton(pinEntryPage, false)
-
-        // Subscribe to Pin requests from BusinessManager
-        MessagingCenter.Subscribe<BusinessManager> (this, "getPinFromUser", (fun _ -> this.getPinFromUser()))
-
-        // Subscribe to application state changes from BusinessManager
-        MessagingCenter.Subscribe<BusinessManager, ApplicationState> (this, "onApplicationStateChanged",
-            fun _ state -> this.OnApplicationStateChanged(state)
-        )
-
-        // Subscribe main content page to changes in domain model.
-        twitListenerPage.SubscribeToModelUpdates()
+        myNav.Popped.Add(fun args -> this.OnPopped(myNav, args))
+        this.SetupApp()
 
     // Handle application sleep
     override this.OnSleep() =
         System.Diagnostics.Debug.WriteLine("OnSleep()");
-        BusinessManager.Instance().SaveState()
         base.OnSleep()
+        BusinessManager.Instance().SaveState()
 
     // Handle application resume
     override this.OnResume() =
         System.Diagnostics.Debug.WriteLine("OnResume()");
-        BusinessManager.Instance().LoadState()
         base.OnResume()
+        this.SetupApp()
+        BusinessManager.Instance().LoadState()
+        if BusinessManager.Instance().IsAuthenticating() then
+            System.Diagnostics.Debug.WriteLine(sprintf "--> we were authenticating; request PIN again")
+            this.getPinFromUser()

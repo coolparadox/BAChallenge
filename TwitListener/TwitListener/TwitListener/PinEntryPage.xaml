@@ -19,15 +19,10 @@
              Placeholder="Enter PIN"
              HorizontalOptions="FillAndExpand"
              TextChanged="onPinEntryTextChanged"/>
-      <StackLayout Orientation="Horizontal">
-        <Button x:Name="okButton"
-                IsEnabled="false"
-                Text="OK"
-                Clicked="onOkButtonClicked"/>
-        <Button x:Name="cancelButton"
-                Text="Cancel"
-                Clicked="onCancelButtonClicked"/>
-      </StackLayout>
+      <Button x:Name="okButton"
+              IsEnabled="false"
+              Text="OK"
+              Clicked="onOkButtonClicked"/>
     </StackLayout>
   </ContentPage.Content>
 </ContentPage>

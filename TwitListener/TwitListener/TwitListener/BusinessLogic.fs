@@ -13,6 +13,9 @@ type BusinessManager private () =
     // State variables of our domain model.
     let mutable mApplicationState = ApplicationState.LoggedOff
     let mutable mTweets = List.empty<Tweet>
+    
+    // Storage keys for persisting state
+    let storeKeyAppState = "applicationState"
 
     // Access to Twitter services
     let twitterServiceManager = TwitterServiceManager.Instance()
@@ -25,16 +28,20 @@ type BusinessManager private () =
     member this.SaveState() =
         Application.Current.Properties.Clear()
         twitterServiceManager.SaveState()
+        Application.Current.Properties.Add(storeKeyAppState, mApplicationState)
         Application.Current.SavePropertiesAsync() |> ignore
 
     // Load state variables.
     member this.LoadState() =
-        if not (twitterServiceManager.LoadState()) then
-            System.Diagnostics.Debug.WriteLine("LoadState ERROR")
+        twitterServiceManager.LoadState()
+        if Application.Current.Properties.ContainsKey(storeKeyAppState) then
+            mApplicationState <- Application.Current.Properties.Item(storeKeyAppState) :?> ApplicationState
+        System.Diagnostics.Debug.WriteLine(sprintf "--> applicationState recovered %A" mApplicationState)
 
     // Change application state.
     member private this.SetApplicationState(state:ApplicationState) =
         if state <> mApplicationState then
+            System.Diagnostics.Debug.WriteLine(sprintf "TwitListener app state %A -> %A" mApplicationState state)
             mApplicationState <- state
             // Notify subscribers that application state was changed.
             MessagingCenter.Send<BusinessManager, ApplicationState> (this, "onApplicationStateChanged", mApplicationState);
@@ -42,21 +49,19 @@ type BusinessManager private () =
     // Start authentication to Twitter service.
     member this.StartSignIn() =
         if mApplicationState = ApplicationState.LoggedOff then
-            this.SetApplicationState(ApplicationState.Authenticating)
-            if twitterServiceManager.StartPinAuthorization() then
-                MessagingCenter.Send<BusinessManager>(this, "getPinFromUser")
-                match twitterServiceManager.AuthorizationURL() with
-                    | Some url ->
-                        Device.OpenUri(System.Uri(url))
-                    | None ->
-                        Device.OpenUri(System.Uri("http://dilbert.com/assets/error-strip-c6fc9d5e2ea0ade7187aa3deacdf4a3d.jpg"))
-            else
-                this.SetApplicationState(ApplicationState.LoggedOff)
-                MessagingCenter.Send<BusinessManager>(this, "authenticationFailed")
+            match twitterServiceManager.StartPinAuthorization() with
+                | None ->
+                    MessagingCenter.Send<BusinessManager, string>(this, "displayWarningRequest", "Application authorization failed")
+                | Some uri ->
+                    this.SetApplicationState(ApplicationState.Authenticating)
+                    MessagingCenter.Send<BusinessManager>(this, "getPinFromUser")
+                    Device.OpenUri(uri)
 
     // Continue an ongoing (Pin) authentication.
     member this.GotPinFromUser(pin:string) =
-        true |> ignore
+        System.Diagnostics.Debug.WriteLine(sprintf "GotPinFromUser(%s)" pin)
+        if mApplicationState = ApplicationState.Authenticating then
+            this.SetApplicationState(ApplicationState.Authenticated)
         (*
         if mApplicationState = ApplicationState.Authenticating then
             let userCredentials = Tweetinvi.AuthFlow.CreateCredentialsFromVerifierCode(pin, authenticationContext.Value)
