@@ -57,8 +57,9 @@
     <Compile Include="BusinessLogic.fs" />
     <EmbeddedResource Include="PinEntryPage.xaml" />
     <Compile Include="PinEntryPage.fs" />
-    <EmbeddedResource Include="TwitListenerPage.xaml" />
-    <Compile Include="TwitListenerPage.fs" />
+    <EmbeddedResource Include="MainPage.xaml" />
+    <Compile Include="MainPage.fs" />
+    <Compile Include="TwitListenerApp.fs" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

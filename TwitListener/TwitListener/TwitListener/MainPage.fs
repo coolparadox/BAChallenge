@@ -6,13 +6,13 @@ open System
 open Xamarin.Forms
 open Xamarin.Forms.Xaml
  
-type TwitListenerPage() = 
+type MainPage() = 
     inherit ContentPage()
 
     let businessManager = BusinessManager.Instance()
 
     // Setup and reference UI components
-    let _ = base.LoadFromXaml(typeof<TwitListenerPage>)
+    let _ = base.LoadFromXaml(typeof<MainPage>)
     let filterEntry = base.FindByName<Entry>("filterEntry")
     let actionButton = base.FindByName<Button>("actionButton")
     let tweetsView = base.FindByName<ListView>("tweetsView")
@@ -98,40 +98,3 @@ type TwitListenerPage() =
         //modelManager.addTweet({Who="@coolparadox"; When=DateTime.Now; What="the quick brown fox jumps over the lazy dog"})
         //modelManager.SetApplicationState(ModelTypes.State.Authenticated)
         this.DisplayAlert("FIXME", "Authenticate and start streaming dude!", "Yeah...") |> ignore
-
-type App() = 
-
-    inherit Application(MainPage = NavigationPage(TwitListenerPage()))
-
-    let navigationPage = base.MainPage :?> NavigationPage
-    let twitListenerPage = navigationPage.CurrentPage :?> TwitListenerPage
-    let pinEntryPage = PinEntryPage()
-
-    // Handle Pin request from BusinessManager
-    member this.getPinFromUser() =
-        navigationPage.PushAsync(pinEntryPage) |> ignore
-
-    // Handle application state changes
-    member this.OnApplicationStateChanged(state:ApplicationState) =
-        if state <> ApplicationState.Authenticating then
-            if navigationPage.CurrentPage.GetType() = typeof<PinEntryPage> then
-                navigationPage.PopToRootAsync() |> ignore
-
-    // Handle application start
-    override this.OnStart() =
-        base.OnStart()
-
-        // Customise navigation page.
-        NavigationPage.SetHasNavigationBar(navigationPage, false)
-        NavigationPage.SetHasBackButton(pinEntryPage, false)
-
-        // Subscribe to Pin requests from BusinessManager
-        MessagingCenter.Subscribe<BusinessManager> (this, "getPinFromUser", (fun _ -> this.getPinFromUser()))
-
-        // Subscribe to application state changes from BusinessManager
-        MessagingCenter.Subscribe<BusinessManager, ApplicationState> (this, "onApplicationStateChanged",
-            fun _ state -> this.OnApplicationStateChanged(state)
-        )
-
-        // Subscribe main content page to changes in domain model.
-        twitListenerPage.SubscribeToModelUpdates()
