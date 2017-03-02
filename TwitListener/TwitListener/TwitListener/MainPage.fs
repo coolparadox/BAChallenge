@@ -114,5 +114,10 @@ type MainPage() =
         actionButton.IsEnabled <- not (String.IsNullOrWhiteSpace(filterEntry.Text))
 
     // Handle click of action button.
-    member this.OnActionButtonClicked(sender : Object, args : EventArgs) = 
-        this.DisplayAlert ("FIXME", "not yet implemented", "Bummer") |> ignore
+    member this.OnActionButtonClicked(sender: Object, args: EventArgs) = 
+        match businessManager.CurrentState with
+            | ApplicationState.Authenticated ->
+                businessManager.StartListening(this)
+            | ApplicationState.Listening ->
+                businessManager.StopListening()
+            | _ -> ()

@@ -10,8 +10,7 @@ open Xamarin.Forms
 type BusinessManager private () =
 
     // State variables of our domain model.
-    let mutable mApplicationState = ApplicationState.LoggedOff
-    //let mutable mTweets = List.empty<StrippedTweet>
+    let mutable mApplicationState = ApplicationState.LoggedOff 
     
     // Storage keys for persisting state
     let storeKeyAppState = "applicationState"
@@ -22,6 +21,10 @@ type BusinessManager private () =
     // Export BusinessManager.Instance
     static let instance = BusinessManager()
     static member Instance() = instance
+
+    // Application state getter.
+    member this.CurrentState =
+        mApplicationState
     
     // Prepare application to go to bed.
     member this.ApplicationSleep() =
@@ -105,7 +108,7 @@ type BusinessManager private () =
         if mApplicationState = ApplicationState.Authenticated then
             MessagingCenter.Subscribe<TwitterService>(this, "twitterStreamStarted", (fun _ -> this.onTwitterStreamStarted()))
             MessagingCenter.Subscribe<TwitterService>(this, "twitterStreamStopped", (fun _ -> this.onTwitterStreamStopped()))
-            twitterService.StartStreaming(listener)
+            twitterService.StartStreaming(listener.Filter)
 
     // Stop listening to tweets.
     member this.StopListening() =

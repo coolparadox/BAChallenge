@@ -19,6 +19,7 @@ type TwitterService private () =
     let mutable mAuthorizationCredential : Credential option = None
     let mutable mUserCredential : Credential option = None
     let mutable mStream : Streaming.IFilteredStream option = None
+    let mutable mListenTask : Task option = None
 
     // Storage keys for persisting state
     let storeKeyAuthCredential = "authorizationCredential"
@@ -103,26 +104,32 @@ type TwitterService private () =
             mStream <- None
 
     // Start listening to Twitter stream.
-    member this.StartStreaming(listener:IStrippedTweetListener) =
+    member this.StartStreaming(filter:string) =
         this.StopStreaming()
         let stream = Stream.CreateFilteredStream()
-        stream.AddTrack(listener.Filter)
+        stream.AddTrack(filter)
         stream.MatchingTweetReceived.Add(fun arg ->
             let tweet = arg.Tweet
             let user = tweet.CreatedBy.Name
             let timestamp = tweet.CreatedAt
             let message = tweet.Text
             let strippedTweet = { Who=user; When=timestamp; What=message }
-            listener.OnTweetReceived(strippedTweet)
+            System.Diagnostics.Debug.WriteLine(sprintf "--> tweet received: %A" strippedTweet)
         )
         stream.StreamStopped.Add(fun arg ->
-            listener.OnStreamStopped(arg.DisconnectMessage.Reason)
-        )
-        stream.StreamStopped.Add(fun _ ->
-            MessagingCenter.Send<TwitterService>(this, "twitterStreamStopped")
+            let reason =
+                if arg.DisconnectMessage <> null then
+                    arg.DisconnectMessage.Reason
+                else
+                    "unknown reason"
+            //listener.OnStreamStopped(reason)
+            System.Diagnostics.Debug.WriteLine(sprintf "--> twitter stream stopped: %A" reason)
+            //MessagingCenter.Send<TwitterService>(this, "twitterStreamStopped")
         )
         stream.StreamStarted.Add(fun _ ->
-            MessagingCenter.Send<TwitterService>(this, "twitterStreamStarted")
+            System.Diagnostics.Debug.WriteLine(sprintf "--> twitter stream started; filter = %A" mStream.Value.Tracks.Values)
+            //MessagingCenter.Send<TwitterService>(this, "twitterStreamStarted")
         )
         mStream <- Some stream
-        System.Threading.Tasks.Task(fun _ -> stream.StartStreamMatchingAllConditions()).Start()
+        let task = stream.StartStreamMatchingAllConditionsAsync()
+        mListenTask <- Some task
