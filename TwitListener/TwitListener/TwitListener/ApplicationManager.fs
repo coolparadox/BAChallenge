@@ -6,8 +6,8 @@ open ServiceAccess.Twitter
 open ServiceAccess.Twitter.Types
 open Xamarin.Forms
 
-// BusinessManager singleton class
-type BusinessManager private () =
+// ApplicationManager singleton class
+type ApplicationManager private () =
 
     // State variables of our domain model.
     let mutable mApplicationState = ApplicationState.LoggedOff 
@@ -18,8 +18,8 @@ type BusinessManager private () =
     // Access to Twitter services
     let twitterService = TwitterService.Instance()
 
-    // Export BusinessManager.Instance
-    static let instance = BusinessManager()
+    // Export ApplicationManager.Instance
+    static let instance = ApplicationManager()
     static member Instance() = instance
 
     // Application state getter.
@@ -50,17 +50,17 @@ type BusinessManager private () =
             System.Diagnostics.Debug.WriteLine(sprintf "TwitListener app state %A -> %A" mApplicationState state)
             mApplicationState <- state
             // Notify subscribers that application state was changed.
-            Device.BeginInvokeOnMainThread(fun _ -> MessagingCenter.Send<BusinessManager, ApplicationState> (this, "onApplicationStateChanged", mApplicationState))
+            Device.BeginInvokeOnMainThread(fun _ -> MessagingCenter.Send<ApplicationManager, ApplicationState> (this, "onApplicationStateChanged", mApplicationState))
 
     // Start authentication to Twitter service.
     member this.StartSignIn() =
         if mApplicationState = ApplicationState.LoggedOff then
             match twitterService.StartPinAuthorization() with
                 | None ->
-                    Device.BeginInvokeOnMainThread(fun _ -> MessagingCenter.Send<BusinessManager, string>(this, "displayWarningRequest", "Application authorization failed"))
+                    Device.BeginInvokeOnMainThread(fun _ -> MessagingCenter.Send<ApplicationManager, string>(this, "displayWarningRequest", "Application authorization failed"))
                 | Some uri ->
                     this.SetApplicationState(ApplicationState.Authenticating)
-                    Device.BeginInvokeOnMainThread(fun _ -> MessagingCenter.Send<BusinessManager>(this, "getPinFromUser"))
+                    Device.BeginInvokeOnMainThread(fun _ -> MessagingCenter.Send<ApplicationManager>(this, "getPinFromUser"))
                     Device.OpenUri(uri)
 
     // Continue an ongoing authentication.
@@ -71,7 +71,7 @@ type BusinessManager private () =
                 this.SetApplicationState(ApplicationState.Authenticated)
             else
                 this.SetApplicationState(ApplicationState.LoggedOff)
-                Device.BeginInvokeOnMainThread(fun _ -> MessagingCenter.Send<BusinessManager, string>(this, "displayWarningRequest", "Authorization failed"))
+                Device.BeginInvokeOnMainThread(fun _ -> MessagingCenter.Send<ApplicationManager, string>(this, "displayWarningRequest", "Authorization failed"))
 
     // Cancel an ongoing authentication.
     member this.CancelAuthentication() =

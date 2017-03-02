@@ -56,7 +56,7 @@
     <Compile Include="BusinessTypes.fs" />
     <Compile Include="TwitterTypes.fs" />
     <Compile Include="TwitterService.fs" />
-    <Compile Include="BusinessLogic.fs" />
+    <Compile Include="ApplicationManager.fs" />
     <EmbeddedResource Include="PinEntryPage.xaml" />
     <Compile Include="PinEntryPage.fs" />
     <EmbeddedResource Include="MainPage.xaml" />

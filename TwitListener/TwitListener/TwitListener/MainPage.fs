@@ -11,7 +11,7 @@ open Xamarin.Forms.Xaml
 type MainPage() = 
     inherit ContentPage()
 
-    let businessManager = BusinessManager.Instance()
+    let appManager = ApplicationManager.Instance()
     let mutable mTweets = List.empty<StrippedTweet>
 
     // Setup and reference UI components
@@ -41,7 +41,7 @@ type MainPage() =
     // Refresh toolbar.
     member this.RefreshToolbar() =
         this.ToolbarItems.Clear()
-        if businessManager.IsAuthenticated() then
+        if appManager.IsAuthenticated() then
             this.ToolbarItems.Add(ToolbarItem("Sign Out", "", (fun _ -> this.OnSignOutOptionClicked()), ToolbarItemOrder.Default, 0))
         else
             this.ToolbarItems.Add(ToolbarItem("Sign In", "", (fun _ -> this.OnSignInOptionClicked()), ToolbarItemOrder.Default, 0))
@@ -82,14 +82,14 @@ type MainPage() =
 
         // Subscribe to changes in application state.
         this.onApplicationStateChanged(ApplicationState.LoggedOff)
-        MessagingCenter.Unsubscribe<BusinessManager, ApplicationState>(this, "onApplicationStateChanged")
-        MessagingCenter.Subscribe<BusinessManager, ApplicationState>(this, "onApplicationStateChanged",
+        MessagingCenter.Unsubscribe<ApplicationManager, ApplicationState>(this, "onApplicationStateChanged")
+        MessagingCenter.Subscribe<ApplicationManager, ApplicationState>(this, "onApplicationStateChanged",
             fun _ state -> this.onApplicationStateChanged(state)
         )
 
         // Subscribe to authentication failed events.
-        MessagingCenter.Unsubscribe<BusinessManager, string>(this, "displayWarningRequest")
-        MessagingCenter.Subscribe<BusinessManager, string>(this, "displayWarningRequest",
+        MessagingCenter.Unsubscribe<ApplicationManager, string>(this, "displayWarningRequest")
+        MessagingCenter.Subscribe<ApplicationManager, string>(this, "displayWarningRequest",
             fun _ message -> this.onDisplayWarningRequest(message)
         )
 
@@ -100,11 +100,11 @@ type MainPage() =
 
     // Handle click of 'Sign In' menu option.
     member this.OnSignInOptionClicked() =
-        businessManager.StartSignIn()
+        appManager.StartSignIn()
 
     // Handle click of 'Sign Out' menu option.
     member this.OnSignOutOptionClicked() =
-        businessManager.SignOut()
+        appManager.SignOut()
 
     // Handle window uncovering.
     override this.OnAppearing() =
@@ -117,9 +117,9 @@ type MainPage() =
 
     // Handle click of action button.
     member this.OnActionButtonClicked(sender: Object, args: EventArgs) = 
-        match businessManager.CurrentState with
+        match appManager.CurrentState with
             | ApplicationState.Authenticated ->
-                businessManager.StartListening(filterEntry.Text)
+                appManager.StartListening(filterEntry.Text)
             | ApplicationState.Listening ->
-                businessManager.StopListening()
+                appManager.StopListening()
             | _ -> ()
