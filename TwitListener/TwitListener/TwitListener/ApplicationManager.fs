@@ -94,11 +94,12 @@ type ApplicationManager private () =
             this.SetApplicationState(ApplicationState.LoggedOff)
 
     member this.OnTweetReceived(tweet:StrippedTweet) =
-        System.Diagnostics.Debug.WriteLine(sprintf "--> (AM) %A tweeted at %A:\n%A" tweet.Who tweet.When tweet.What)
+        //System.Diagnostics.Debug.WriteLine(sprintf "--> %A tweeted at %A:\n%A" tweet.Who tweet.When tweet.What)
+        Device.BeginInvokeOnMainThread(fun _ -> MessagingCenter.Send<ApplicationManager, StrippedTweet>(this, "tweetReceived", tweet))
 
     // Handle start of twitter stream listening.
     member this.OnTwitterStreamStarted() =
-        System.Diagnostics.Debug.WriteLine(sprintf "--> (AM) twitter stream started")
+        System.Diagnostics.Debug.WriteLine(sprintf "--> twitter stream started")
         MessagingCenter.Unsubscribe<TwitterService>(this, "streamStarted")
         MessagingCenter.Subscribe<TwitterService, string>(this, "streamStopped", (fun _ reason -> this.OnTwitterStreamStopped(reason)))
         MessagingCenter.Subscribe<TwitterService, StrippedTweet>(this, "tweetReceived", (fun _ tweet -> this.OnTweetReceived(tweet)))
@@ -106,7 +107,7 @@ type ApplicationManager private () =
 
     // Handle stop of twitter stream listening.
     member this.OnTwitterStreamStopped(reason:string) =
-        System.Diagnostics.Debug.WriteLine(sprintf "--> (AM) twitter stream stopped: %A" reason)
+        System.Diagnostics.Debug.WriteLine(sprintf "--> twitter stream stopped: %A" reason)
         MessagingCenter.Unsubscribe<TwitterService, string>(this, "streamStopped")
         MessagingCenter.Unsubscribe<TwitterService, StrippedTweet>(this, "tweetReceived")
         this.SetApplicationState(ApplicationState.Authenticated)

@@ -20,23 +20,14 @@ type MainPage() =
     let actionButton = base.FindByName<Button>("actionButton")
     let tweetsView = base.FindByName<ListView>("tweetsView")
 
-    (*
-    // This page can listen to tweets.
-    interface IStrippedTweetListener with
-
-        member this.Filter =
-            filterEntry.Text
-
-        member this.OnTweetReceived(tweet:StrippedTweet) =
-            // Add tweet to list.
-            // Safeguard against infinite list expansion.
-            mTweets <- tweet :: take 100 mTweets
-            // Update view.
-            tweetsView.ItemsSource <- ((mTweets |> List.toSeq) :> Collections.IEnumerable)
-
-        member this.OnStreamStopped(reason:string) =
-            this.DisplayAlert ("Tweet stream stopped", reason, "Ok") |> ignore
-    *)
+    // Handle an incoming tweet.
+    member this.OnTweetReceived(tweet:StrippedTweet) =
+        System.Diagnostics.Debug.WriteLine(sprintf "--> %A tweeted at %A:\n%A" tweet.Who tweet.When tweet.What)
+        // Add tweet to list.
+        // Safeguard against infinite list expansion.
+        mTweets <- tweet :: take 100 mTweets
+        // Update view.
+        tweetsView.ItemsSource <- ((mTweets |> List.toSeq) :> Collections.IEnumerable)
 
     // Refresh toolbar.
     member this.RefreshToolbar() =
@@ -72,6 +63,12 @@ type MainPage() =
                 actionButton.IsEnabled <- false
                 tweetsView.IsEnabled <- false
         this.RefreshToolbar()
+        if state = ApplicationState.Listening then
+            MessagingCenter.Subscribe<ApplicationManager, StrippedTweet>(this, "tweetReceived", (fun _ tweet ->
+                this.OnTweetReceived(tweet)
+            ))
+        else
+            MessagingCenter.Unsubscribe<ApplicationManager, StrippedTweet>(this, "tweetReceived")            
 
     // Warn about failure in authentication.
     member this.onDisplayWarningRequest(message:string) =

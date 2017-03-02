@@ -113,7 +113,7 @@ type TwitterService private () =
             let timestamp = tweet.CreatedAt
             let message = tweet.Text
             let strippedTweet = { Who=user; When=timestamp; What=message }
-            System.Diagnostics.Debug.WriteLine(sprintf "--> (TS) tweet received: %A" strippedTweet)
+            //System.Diagnostics.Debug.WriteLine(sprintf "--> (TS) tweet received: %A" strippedTweet)
             MessagingCenter.Send<TwitterService, StrippedTweet>(this, "tweetReceived", strippedTweet)
         )
         stream.StreamStopped.Add(fun arg ->
@@ -123,11 +123,11 @@ type TwitterService private () =
                     sprintf "(%A on %A) %A" dMsg.Code dMsg.StreamName dMsg.Reason
                 else
                     "unknown reason"
-            System.Diagnostics.Debug.WriteLine(sprintf "--> (TS) twitter stream stopped: %A" reason)
+            //System.Diagnostics.Debug.WriteLine(sprintf "--> (TS) twitter stream stopped: %A" reason)
             MessagingCenter.Send<TwitterService, string>(this, "streamStopped", reason)
         )
         stream.StreamStarted.Add(fun _ ->
-            System.Diagnostics.Debug.WriteLine(sprintf "--> (TS) twitter stream started")
+            //System.Diagnostics.Debug.WriteLine(sprintf "--> (TS) twitter stream started")
             MessagingCenter.Send<TwitterService>(this, "streamStarted")
         )
         mStream <- Some stream
