@@ -36,7 +36,7 @@ type BusinessManager private () =
         twitterServiceManager.LoadState()
         if Application.Current.Properties.ContainsKey(storeKeyAppState) then
             mApplicationState <- Application.Current.Properties.Item(storeKeyAppState) :?> ApplicationState
-        System.Diagnostics.Debug.WriteLine(sprintf "--> applicationState recovered %A" mApplicationState)
+        System.Diagnostics.Debug.WriteLine(sprintf "--> recovered application state: %A" mApplicationState)
 
     // Change application state.
     member private this.SetApplicationState(state:ApplicationState) =

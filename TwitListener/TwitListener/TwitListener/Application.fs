@@ -8,6 +8,8 @@ type App() =
 
     inherit Application(MainPage = NavigationPage(MainPage()))
 
+    let businessManager = BusinessManager.Instance()
+
     let myNav = base.MainPage :?> NavigationPage
     let mainPage = myNav.CurrentPage :?> MainPage
     let pinEntryPage = PinEntryPage()
@@ -28,16 +30,12 @@ type App() =
             let pinEntryPage = args.Page :?> PinEntryPage
             match pinEntryPage.GetPin() with
                 | None ->
-                    BusinessManager.Instance().CancelAuthentication()
+                    businessManager.CancelAuthentication()
                 | Some pin ->
-                    BusinessManager.Instance().GotPinFromUser(pin)
+                    businessManager.GotPinFromUser(pin)
 
     // Configure app and navigation page
     member this.SetupApp() =
-
-        //// Customise navigation page.
-        //MyNavPage.SetHasNavigationBar(myNav, false)
-        //MyNavPage.SetHasBackButton(pinEntryPage, false)
 
         // Subscribe to Pin requests from BusinessManager
         MessagingCenter.Unsubscribe<BusinessManager>(this, "getPinFromUser")
@@ -58,19 +56,22 @@ type App() =
         base.OnStart()
         myNav.Popped.Add(fun args -> this.OnPopped(myNav, args))
         this.SetupApp()
+        businessManager.LoadState()
+        if businessManager.IsAuthenticating() then
+            businessManager.CancelAuthentication()
 
     // Handle application sleep
     override this.OnSleep() =
         System.Diagnostics.Debug.WriteLine("OnSleep()");
         base.OnSleep()
-        BusinessManager.Instance().SaveState()
+        businessManager.SaveState()
 
     // Handle application resume
     override this.OnResume() =
         System.Diagnostics.Debug.WriteLine("OnResume()");
         base.OnResume()
         this.SetupApp()
-        BusinessManager.Instance().LoadState()
-        if BusinessManager.Instance().IsAuthenticating() then
+        businessManager.LoadState()
+        if businessManager.IsAuthenticating() then
             System.Diagnostics.Debug.WriteLine(sprintf "--> we were authenticating; request PIN again")
             this.getPinFromUser()
