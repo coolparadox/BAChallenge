@@ -1,7 +1,6 @@
 ﻿// Business Logic Layer
 namespace BusinessLogic
 
-open AuxFuncs
 open BusinessLogic.Types
 open ServiceAccess.Twitter
 open ServiceAccess.Twitter.Types
@@ -12,13 +11,13 @@ type BusinessManager private () =
 
     // State variables of our domain model.
     let mutable mApplicationState = ApplicationState.LoggedOff
-    let mutable mTweets = List.empty<Tweet>
+    //let mutable mTweets = List.empty<StrippedTweet>
     
     // Storage keys for persisting state
     let storeKeyAppState = "applicationState"
 
     // Access to Twitter services
-    let twitterServiceManager = TwitterServiceManager.Instance()
+    let twitterService = TwitterService.Instance()
 
     // Export BusinessManager.Instance
     static let instance = BusinessManager()
@@ -27,13 +26,13 @@ type BusinessManager private () =
     // Save state variables.
     member this.SaveState() =
         Application.Current.Properties.Clear()
-        twitterServiceManager.SaveState()
+        twitterService.SaveState()
         Application.Current.Properties.Add(storeKeyAppState, mApplicationState)
         Application.Current.SavePropertiesAsync() |> ignore
 
     // Load state variables.
     member this.LoadState() =
-        twitterServiceManager.LoadState()
+        twitterService.LoadState()
         if Application.Current.Properties.ContainsKey(storeKeyAppState) then
             mApplicationState <- Application.Current.Properties.Item(storeKeyAppState) :?> ApplicationState
         System.Diagnostics.Debug.WriteLine(sprintf "--> recovered application state: %A" mApplicationState)
@@ -49,7 +48,7 @@ type BusinessManager private () =
     // Start authentication to Twitter service.
     member this.StartSignIn() =
         if mApplicationState = ApplicationState.LoggedOff then
-            match twitterServiceManager.StartPinAuthorization() with
+            match twitterService.StartPinAuthorization() with
                 | None ->
                     MessagingCenter.Send<BusinessManager, string>(this, "displayWarningRequest", "Application authorization failed")
                 | Some uri ->
@@ -61,7 +60,7 @@ type BusinessManager private () =
     member this.GotPinFromUser(pin:string) =
         System.Diagnostics.Debug.WriteLine(sprintf "GotPinFromUser(%s)" pin)
         if mApplicationState = ApplicationState.Authenticating then
-            if twitterServiceManager.ResumePinAuthorization(pin) then
+            if twitterService.ResumePinAuthorization(pin) then
                 this.SetApplicationState(ApplicationState.Authenticated)
             else
                 this.SetApplicationState(ApplicationState.LoggedOff)
@@ -70,7 +69,7 @@ type BusinessManager private () =
     // Cancel an ongoing authentication.
     member this.CancelAuthentication() =
         if mApplicationState = ApplicationState.Authenticating then
-            twitterServiceManager.CancelPinAuthorization()
+            twitterService.CancelPinAuthorization()
             this.SetApplicationState(ApplicationState.LoggedOff)
 
     // Are we authenticating?
@@ -81,16 +80,22 @@ type BusinessManager private () =
     member this.IsAuthenticated() =
         mApplicationState >= ApplicationState.Authenticated
 
-    // Sign out from twitter
+    // Sign out from twitter.
     member this.SignOut() =
         if this.IsAuthenticated() then
-            twitterServiceManager.InvalidateUserCredentials() |> ignore
+            twitterService.InvalidateUserCredentials() |> ignore
             this.SetApplicationState(ApplicationState.LoggedOff)
 
+    // Start listening to tweet flow.
+    member this.StartListening(filter:string) =
+        true |> ignore
+
+    (*
     // Add a new tweet.
-    member this.AddTweet(tweet:Tweet) =
+    member this.AddTweet(tweet:StrippedTweet) =
         if mApplicationState = ApplicationState.Listening then
             // Prepend new tweet to the list, protecting against infinite growth.
-            mTweets <- tweet :: take 500 mTweets
+            mTweets <- tweet :: take 100 mTweets
             // Notify subscribers that tweet list was changed.
-            MessagingCenter.Send<BusinessManager, Tweet list> (this, "onTweetListChanged", mTweets);
+            MessagingCenter.Send<BusinessManager, StrippedTweet list> (this, "onTweetListChanged", mTweets);
+    *)

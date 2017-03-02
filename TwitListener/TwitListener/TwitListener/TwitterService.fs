@@ -1,11 +1,12 @@
 ﻿namespace ServiceAccess.Twitter
 
 open ServiceAccess.Twitter.Types
+open System.Threading.Tasks
 open Tweetinvi
 open Xamarin.Forms
 
-// TwitterServiceManager singleton class
-type TwitterServiceManager private () =
+// TwitterService singleton class
+type TwitterService private () =
 
     // Brick Abode Twitter Listener application keys
     // Registered by coolparadox
@@ -17,13 +18,14 @@ type TwitterServiceManager private () =
     // State variables
     let mutable mAuthorizationCredential : Credential option = None
     let mutable mUserCredential : Credential option = None
+    let mutable mStream : Streaming.IFilteredStream option = None
 
     // Storage keys for persisting state
     let storeKeyAuthCredential = "authorizationCredential"
     let storeKeyUserCredential = "userCredential"
 
-    // Export TwitterServiceManager.Instance
-    static let instance = TwitterServiceManager()
+    // Export TwitterService.Instance
+    static let instance = TwitterService()
     static member Instance() = instance
 
     // Save state variables.
@@ -81,3 +83,38 @@ type TwitterServiceManager private () =
     // Invalidade user access credentials.
     member this.InvalidateUserCredentials() =
         mUserCredential <- None
+
+    // Get authenticated user name.
+    member this.UserScreenName() =
+        let authenticatedUser = User.GetAuthenticatedUser()
+        if authenticatedUser = null then
+            None
+        else
+            let accountSettings = authenticatedUser.GetAccountSettings()
+            if accountSettings = null then
+                None
+            else
+                Some accountSettings.ScreenName
+
+    // Start listening to Twitter stream.
+    member this.StartStreaming(filter:string) =
+        let stream = Stream.CreateFilteredStream()
+        stream.AddTrack(filter)
+        stream.MatchingTweetReceived.Add(fun args ->
+            let tweet = args.Tweet
+            let user = tweet.CreatedBy.Name
+            let timestamp = tweet.CreatedAt
+            let message = tweet.Text
+            MessagingCenter.Send<TwitterService, StrippedTweet>(this, "tweet", {Who=user; When=timestamp; What=message})
+        )
+        stream.StreamStopped.Add(fun args ->
+            MessagingCenter.Send<TwitterService, string>(this, "streamStopped", args.DisconnectMessage.Reason)        
+        )
+        mStream <- Some stream
+        System.Threading.Tasks.Task(fun _ -> stream.StartStreamMatchingAllConditions()).Start
+
+    // Stop listening to Twitter stream.
+    member this.StopStreaming() =
+        if Option.isSome mStream then
+            let stream = mStream.Value
+            stream.StopStream()

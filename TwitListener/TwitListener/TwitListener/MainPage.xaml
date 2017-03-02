@@ -18,9 +18,10 @@
                    FontSize="Large"/>
             <StackLayout Orientation="Horizontal">
                 <Entry x:Name="filterEntry"
-                       Placeholder="Enter a Twitter User"
+                       Placeholder="filter1 filter2 ..."
                        HorizontalOptions="FillAndExpand"
-                       IsEnabled="false"/>
+                       IsEnabled="false"
+                        TextChanged="OnFilterEntryTextChanged" />
                 <Button x:Name="actionButton"
                         IsEnabled="false"
                         Text="Start"
