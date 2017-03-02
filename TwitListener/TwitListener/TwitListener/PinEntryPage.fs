@@ -15,13 +15,16 @@ type PinEntryPage() =
     let pinEntry = base.FindByName<Entry>("pinEntry")
     let okButton = base.FindByName<Button>("okButton")
 
+    // Get the acquired pin.
     member this.GetPin() =
         pin
 
+    // Handle dialog appearance.
     override this.OnAppearing() =
         base.OnAppearing()
         pin <- None
 
+    // Handle dialog hiding.
     override this.OnDisappearing() =
         pinEntry.Text <- ""
 

@@ -24,14 +24,18 @@ type App() =
             if myNav.CurrentPage.GetType() = typeof<PinEntryPage> then
                 myNav.PopToRootAsync() |> ignore
 
+    // Handle removal of pages from navigation stack.
     member this.OnPopped(nav:NavigationPage, args:NavigationEventArgs) =
         System.Diagnostics.Debug.WriteLine("onPopped()")
         if args.Page.GetType() = typeof<PinEntryPage> then
+            // Pin entry dialog has just returned.
             let pinEntryPage = args.Page :?> PinEntryPage
             match pinEntryPage.GetPin() with
                 | None ->
+                    // No pin was provided.
                     businessManager.CancelAuthentication()
                 | Some pin ->
+                    // User entered a pin.
                     businessManager.GotPinFromUser(pin)
 
     // Configure app and navigation page
@@ -56,7 +60,7 @@ type App() =
         base.OnStart()
         myNav.Popped.Add(fun args -> this.OnPopped(myNav, args))
         this.SetupApp()
-        businessManager.LoadState()
+        businessManager.ApplicationRecover()
         if businessManager.IsAuthenticating() then
             businessManager.CancelAuthentication()
 
@@ -64,14 +68,14 @@ type App() =
     override this.OnSleep() =
         System.Diagnostics.Debug.WriteLine("OnSleep()");
         base.OnSleep()
-        businessManager.SaveState()
+        businessManager.ApplicationSleep()
 
     // Handle application resume
     override this.OnResume() =
         System.Diagnostics.Debug.WriteLine("OnResume()");
         base.OnResume()
         this.SetupApp()
-        businessManager.LoadState()
+        businessManager.ApplicationRecover()
         if businessManager.IsAuthenticating() then
             System.Diagnostics.Debug.WriteLine(sprintf "--> we were authenticating; request PIN again")
             this.getPinFromUser()

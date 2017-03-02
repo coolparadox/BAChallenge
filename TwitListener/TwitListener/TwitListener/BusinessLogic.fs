@@ -23,15 +23,19 @@ type BusinessManager private () =
     static let instance = BusinessManager()
     static member Instance() = instance
     
-    // Save state variables.
-    member this.SaveState() =
+    // Prepare application to go to bed.
+    member this.ApplicationSleep() =
+        if mApplicationState = ApplicationState.Listening then
+            // Close network connection
+            twitterService.StopStreaming()
+            mApplicationState <- ApplicationState.Authenticated
         Application.Current.Properties.Clear()
         twitterService.SaveState()
         Application.Current.Properties.Add(storeKeyAppState, mApplicationState)
         Application.Current.SavePropertiesAsync() |> ignore
 
-    // Load state variables.
-    member this.LoadState() =
+    // Wake up from sleep.
+    member this.ApplicationRecover() =
         twitterService.LoadState()
         if Application.Current.Properties.ContainsKey(storeKeyAppState) then
             mApplicationState <- Application.Current.Properties.Item(storeKeyAppState) :?> ApplicationState
@@ -86,16 +90,24 @@ type BusinessManager private () =
             twitterService.InvalidateUserCredentials() |> ignore
             this.SetApplicationState(ApplicationState.LoggedOff)
 
-    // Start listening to tweet flow.
-    member this.StartListening(filter:string) =
-        true |> ignore
+    // Handle start of twitter stream listening.
+    member this.onTwitterStreamStarted() =
+        this.SetApplicationState(ApplicationState.Listening)
 
-    (*
-    // Add a new tweet.
-    member this.AddTweet(tweet:StrippedTweet) =
+    // Handle stop of twitter stream listening.
+    member this.onTwitterStreamStopped() =
+        MessagingCenter.Unsubscribe<TwitterService>(this, "twitterStreamStarted")
+        MessagingCenter.Unsubscribe<TwitterService>(this, "twitterStreamStopped")
+        this.SetApplicationState(ApplicationState.Authenticated)
+
+    // Start listening to tweets.
+    member this.StartListening(listener:IStrippedTweetListener) =
+        if mApplicationState = ApplicationState.Authenticated then
+            MessagingCenter.Subscribe<TwitterService>(this, "twitterStreamStarted", (fun _ -> this.onTwitterStreamStarted()))
+            MessagingCenter.Subscribe<TwitterService>(this, "twitterStreamStopped", (fun _ -> this.onTwitterStreamStopped()))
+            twitterService.StartStreaming(listener)
+
+    // Stop listening to tweets.
+    member this.StopListening() =
         if mApplicationState = ApplicationState.Listening then
-            // Prepend new tweet to the list, protecting against infinite growth.
-            mTweets <- tweet :: take 100 mTweets
-            // Notify subscribers that tweet list was changed.
-            MessagingCenter.Send<BusinessManager, StrippedTweet list> (this, "onTweetListChanged", mTweets);
-    *)
+            twitterService.StopStreaming()

@@ -3,7 +3,6 @@
 open AuxFuncs
 open BusinessLogic
 open BusinessLogic.Types
-open ServiceAccess.Twitter
 open ServiceAccess.Twitter.Types
 open System
 open Xamarin.Forms
@@ -20,6 +19,22 @@ type MainPage() =
     let filterEntry = base.FindByName<Entry>("filterEntry")
     let actionButton = base.FindByName<Button>("actionButton")
     let tweetsView = base.FindByName<ListView>("tweetsView")
+
+    // This page can listen to tweets.
+    interface IStrippedTweetListener with
+
+        member this.Filter =
+            filterEntry.Text
+
+        member this.OnTweetReceived(tweet:StrippedTweet) =
+            // Add tweet to list.
+            // Safeguard against infinite list expansion.
+            mTweets <- tweet :: take 100 mTweets
+            // Update view.
+            tweetsView.ItemsSource <- ((mTweets |> List.toSeq) :> Collections.IEnumerable)
+
+        member this.OnStreamStopped(reason:string) =
+            this.DisplayAlert ("Tweet stream stopped", reason, "Ok") |> ignore
 
     // Refresh toolbar.
     member this.RefreshToolbar() =
@@ -60,10 +75,6 @@ type MainPage() =
     member this.onDisplayWarningRequest(message:string) =
         this.DisplayAlert ("Warning", message, "Bummer") |> ignore
 
-    // Handle updates in tweet list.
-    member this.onTweetListChanged() =
-        tweetsView.ItemsSource <- ((mTweets |> List.toSeq) :> Collections.IEnumerable)
-
     // Get notified of changes in domain model.
     member this.SubscribeToModelUpdates() =
 
@@ -78,15 +89,6 @@ type MainPage() =
         MessagingCenter.Unsubscribe<BusinessManager, string>(this, "displayWarningRequest")
         MessagingCenter.Subscribe<BusinessManager, string>(this, "displayWarningRequest",
             fun _ message -> this.onDisplayWarningRequest(message)
-        )
-
-        // Subscribe to changes in tweet list.
-        this.onTweetListChanged()
-        MessagingCenter.Unsubscribe<TwitterService, StrippedTweet>(this, "tweet")
-        MessagingCenter.Subscribe<TwitterService, StrippedTweet>(this, "tweet",
-            fun _ tweet ->
-                mTweets <- tweet :: take 100 mTweets
-                this.onTweetListChanged()
         )
 
     // Handle click of 'About' menu option.
@@ -109,7 +111,7 @@ type MainPage() =
 
     // Handle change of filter entry content.
     member this.OnFilterEntryTextChanged(sender:Object, args:EventArgs) = 
-        actionButton.IsEnabled <- String.length(filterEntry.Text) > 0
+        actionButton.IsEnabled <- not (String.IsNullOrWhiteSpace(filterEntry.Text))
 
     // Handle click of action button.
     member this.OnActionButtonClicked(sender : Object, args : EventArgs) = 

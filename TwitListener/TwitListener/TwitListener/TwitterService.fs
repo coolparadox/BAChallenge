@@ -5,7 +5,7 @@ open System.Threading.Tasks
 open Tweetinvi
 open Xamarin.Forms
 
-// TwitterService singleton class
+// TwitterService singleton class.
 type TwitterService private () =
 
     // Brick Abode Twitter Listener application keys
@@ -96,25 +96,33 @@ type TwitterService private () =
             else
                 Some accountSettings.ScreenName
 
-    // Start listening to Twitter stream.
-    member this.StartStreaming(filter:string) =
-        let stream = Stream.CreateFilteredStream()
-        stream.AddTrack(filter)
-        stream.MatchingTweetReceived.Add(fun args ->
-            let tweet = args.Tweet
-            let user = tweet.CreatedBy.Name
-            let timestamp = tweet.CreatedAt
-            let message = tweet.Text
-            MessagingCenter.Send<TwitterService, StrippedTweet>(this, "tweet", {Who=user; When=timestamp; What=message})
-        )
-        stream.StreamStopped.Add(fun args ->
-            MessagingCenter.Send<TwitterService, string>(this, "streamStopped", args.DisconnectMessage.Reason)        
-        )
-        mStream <- Some stream
-        System.Threading.Tasks.Task(fun _ -> stream.StartStreamMatchingAllConditions()).Start
-
     // Stop listening to Twitter stream.
     member this.StopStreaming() =
         if Option.isSome mStream then
-            let stream = mStream.Value
-            stream.StopStream()
+            mStream.Value.StopStream()
+            mStream <- None
+
+    // Start listening to Twitter stream.
+    member this.StartStreaming(listener:IStrippedTweetListener) =
+        this.StopStreaming()
+        let stream = Stream.CreateFilteredStream()
+        stream.AddTrack(listener.Filter)
+        stream.MatchingTweetReceived.Add(fun arg ->
+            let tweet = arg.Tweet
+            let user = tweet.CreatedBy.Name
+            let timestamp = tweet.CreatedAt
+            let message = tweet.Text
+            let strippedTweet = { Who=user; When=timestamp; What=message }
+            listener.OnTweetReceived(strippedTweet)
+        )
+        stream.StreamStopped.Add(fun arg ->
+            listener.OnStreamStopped(arg.DisconnectMessage.Reason)
+        )
+        stream.StreamStopped.Add(fun _ ->
+            MessagingCenter.Send<TwitterService>(this, "twitterStreamStopped")
+        )
+        stream.StreamStarted.Add(fun _ ->
+            MessagingCenter.Send<TwitterService>(this, "twitterStreamStarted")
+        )
+        mStream <- Some stream
+        System.Threading.Tasks.Task(fun _ -> stream.StartStreamMatchingAllConditions()).Start()
