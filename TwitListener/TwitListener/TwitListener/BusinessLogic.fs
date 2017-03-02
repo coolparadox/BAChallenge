@@ -50,17 +50,17 @@ type BusinessManager private () =
             System.Diagnostics.Debug.WriteLine(sprintf "TwitListener app state %A -> %A" mApplicationState state)
             mApplicationState <- state
             // Notify subscribers that application state was changed.
-            MessagingCenter.Send<BusinessManager, ApplicationState> (this, "onApplicationStateChanged", mApplicationState);
+            Device.BeginInvokeOnMainThread(fun _ -> MessagingCenter.Send<BusinessManager, ApplicationState> (this, "onApplicationStateChanged", mApplicationState))
 
     // Start authentication to Twitter service.
     member this.StartSignIn() =
         if mApplicationState = ApplicationState.LoggedOff then
             match twitterService.StartPinAuthorization() with
                 | None ->
-                    MessagingCenter.Send<BusinessManager, string>(this, "displayWarningRequest", "Application authorization failed")
+                    Device.BeginInvokeOnMainThread(fun _ -> MessagingCenter.Send<BusinessManager, string>(this, "displayWarningRequest", "Application authorization failed"))
                 | Some uri ->
                     this.SetApplicationState(ApplicationState.Authenticating)
-                    MessagingCenter.Send<BusinessManager>(this, "getPinFromUser")
+                    Device.BeginInvokeOnMainThread(fun _ -> MessagingCenter.Send<BusinessManager>(this, "getPinFromUser"))
                     Device.OpenUri(uri)
 
     // Continue an ongoing authentication.
@@ -71,7 +71,7 @@ type BusinessManager private () =
                 this.SetApplicationState(ApplicationState.Authenticated)
             else
                 this.SetApplicationState(ApplicationState.LoggedOff)
-                MessagingCenter.Send<BusinessManager, string>(this, "displayWarningRequest", "Authorization failed")
+                Device.BeginInvokeOnMainThread(fun _ -> MessagingCenter.Send<BusinessManager, string>(this, "displayWarningRequest", "Authorization failed"))
 
     // Cancel an ongoing authentication.
     member this.CancelAuthentication() =
@@ -93,22 +93,29 @@ type BusinessManager private () =
             twitterService.InvalidateUserCredentials() |> ignore
             this.SetApplicationState(ApplicationState.LoggedOff)
 
+    member this.OnTweetReceived(tweet:StrippedTweet) =
+        System.Diagnostics.Debug.WriteLine(sprintf "--> (AM) %A tweeted at %A:\n%A" tweet.Who tweet.When tweet.What)
+
     // Handle start of twitter stream listening.
-    member this.onTwitterStreamStarted() =
+    member this.OnTwitterStreamStarted() =
+        System.Diagnostics.Debug.WriteLine(sprintf "--> (AM) twitter stream started")
+        MessagingCenter.Unsubscribe<TwitterService>(this, "streamStarted")
+        MessagingCenter.Subscribe<TwitterService, string>(this, "streamStopped", (fun _ reason -> this.OnTwitterStreamStopped(reason)))
+        MessagingCenter.Subscribe<TwitterService, StrippedTweet>(this, "tweetReceived", (fun _ tweet -> this.OnTweetReceived(tweet)))
         this.SetApplicationState(ApplicationState.Listening)
 
     // Handle stop of twitter stream listening.
-    member this.onTwitterStreamStopped() =
-        MessagingCenter.Unsubscribe<TwitterService>(this, "twitterStreamStarted")
-        MessagingCenter.Unsubscribe<TwitterService>(this, "twitterStreamStopped")
+    member this.OnTwitterStreamStopped(reason:string) =
+        System.Diagnostics.Debug.WriteLine(sprintf "--> (AM) twitter stream stopped: %A" reason)
+        MessagingCenter.Unsubscribe<TwitterService, string>(this, "streamStopped")
+        MessagingCenter.Unsubscribe<TwitterService, StrippedTweet>(this, "tweetReceived")
         this.SetApplicationState(ApplicationState.Authenticated)
 
     // Start listening to tweets.
-    member this.StartListening(listener:IStrippedTweetListener) =
+    member this.StartListening(filter:string) =
         if mApplicationState = ApplicationState.Authenticated then
-            MessagingCenter.Subscribe<TwitterService>(this, "twitterStreamStarted", (fun _ -> this.onTwitterStreamStarted()))
-            MessagingCenter.Subscribe<TwitterService>(this, "twitterStreamStopped", (fun _ -> this.onTwitterStreamStopped()))
-            twitterService.StartStreaming(listener.Filter)
+            MessagingCenter.Subscribe<TwitterService>(this, "streamStarted", (fun _ -> this.OnTwitterStreamStarted()))
+            twitterService.StartStreaming(filter)
 
     // Stop listening to tweets.
     member this.StopListening() =

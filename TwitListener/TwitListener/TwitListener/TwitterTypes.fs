@@ -16,6 +16,7 @@ type StrippedTweet = {
 
 }
 
+(*
 // Tweet listener interface.
 type IStrippedTweetListener =
 
@@ -28,3 +29,4 @@ type IStrippedTweetListener =
     // Handler for notification of stopping of listening.
     // A textual description about the event is sent ti the handler.
     abstract member OnStreamStopped : string -> unit
+*)

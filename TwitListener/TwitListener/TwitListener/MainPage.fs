@@ -20,6 +20,7 @@ type MainPage() =
     let actionButton = base.FindByName<Button>("actionButton")
     let tweetsView = base.FindByName<ListView>("tweetsView")
 
+    (*
     // This page can listen to tweets.
     interface IStrippedTweetListener with
 
@@ -35,6 +36,7 @@ type MainPage() =
 
         member this.OnStreamStopped(reason:string) =
             this.DisplayAlert ("Tweet stream stopped", reason, "Ok") |> ignore
+    *)
 
     // Refresh toolbar.
     member this.RefreshToolbar() =
@@ -56,7 +58,7 @@ type MainPage() =
             | ApplicationState.Authenticated ->
                 filterEntry.IsEnabled <- true
                 actionButton.Text <- "Start"
-                actionButton.IsEnabled <- false
+                actionButton.IsEnabled <- not (String.IsNullOrWhiteSpace(filterEntry.Text))
                 tweetsView.IsEnabled <- true
             | ApplicationState.Listening ->
                 filterEntry.IsEnabled <- false
@@ -117,7 +119,7 @@ type MainPage() =
     member this.OnActionButtonClicked(sender: Object, args: EventArgs) = 
         match businessManager.CurrentState with
             | ApplicationState.Authenticated ->
-                businessManager.StartListening(this)
+                businessManager.StartListening(filterEntry.Text)
             | ApplicationState.Listening ->
                 businessManager.StopListening()
             | _ -> ()

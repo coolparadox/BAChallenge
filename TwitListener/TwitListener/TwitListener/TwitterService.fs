@@ -105,7 +105,6 @@ type TwitterService private () =
 
     // Start listening to Twitter stream.
     member this.StartStreaming(filter:string) =
-        this.StopStreaming()
         let stream = Stream.CreateFilteredStream()
         stream.AddTrack(filter)
         stream.MatchingTweetReceived.Add(fun arg ->
@@ -114,21 +113,22 @@ type TwitterService private () =
             let timestamp = tweet.CreatedAt
             let message = tweet.Text
             let strippedTweet = { Who=user; When=timestamp; What=message }
-            System.Diagnostics.Debug.WriteLine(sprintf "--> tweet received: %A" strippedTweet)
+            System.Diagnostics.Debug.WriteLine(sprintf "--> (TS) tweet received: %A" strippedTweet)
+            MessagingCenter.Send<TwitterService, StrippedTweet>(this, "tweetReceived", strippedTweet)
         )
         stream.StreamStopped.Add(fun arg ->
             let reason =
                 if arg.DisconnectMessage <> null then
-                    arg.DisconnectMessage.Reason
+                    let dMsg = arg.DisconnectMessage
+                    sprintf "(%A on %A) %A" dMsg.Code dMsg.StreamName dMsg.Reason
                 else
                     "unknown reason"
-            //listener.OnStreamStopped(reason)
-            System.Diagnostics.Debug.WriteLine(sprintf "--> twitter stream stopped: %A" reason)
-            //MessagingCenter.Send<TwitterService>(this, "twitterStreamStopped")
+            System.Diagnostics.Debug.WriteLine(sprintf "--> (TS) twitter stream stopped: %A" reason)
+            MessagingCenter.Send<TwitterService, string>(this, "streamStopped", reason)
         )
         stream.StreamStarted.Add(fun _ ->
-            System.Diagnostics.Debug.WriteLine(sprintf "--> twitter stream started; filter = %A" mStream.Value.Tracks.Values)
-            //MessagingCenter.Send<TwitterService>(this, "twitterStreamStarted")
+            System.Diagnostics.Debug.WriteLine(sprintf "--> (TS) twitter stream started")
+            MessagingCenter.Send<TwitterService>(this, "streamStarted")
         )
         mStream <- Some stream
         let task = stream.StartStreamMatchingAllConditionsAsync()
