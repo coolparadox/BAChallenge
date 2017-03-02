@@ -19,7 +19,6 @@ type TwitterService private () =
     let mutable mAuthorizationCredential : Credential option = None
     let mutable mUserCredential : Credential option = None
     let mutable mStream : Streaming.IFilteredStream option = None
-    let mutable mListenTask : Task option = None
 
     // Storage keys for persisting state
     let storeKeyAuthCredential = "authorizationCredential"
@@ -85,17 +84,17 @@ type TwitterService private () =
     member this.InvalidateUserCredentials() =
         mUserCredential <- None
 
-    // Get authenticated user name.
-    member this.UserScreenName() =
-        let authenticatedUser = User.GetAuthenticatedUser()
-        if authenticatedUser = null then
-            None
-        else
-            let accountSettings = authenticatedUser.GetAccountSettings()
-            if accountSettings = null then
-                None
-            else
-                Some accountSettings.ScreenName
+    // Extract users from textual filter to be passed to the stream.
+    member private this.parseFilter(filter:string) =
+        let tracks = filter.Split([|' '|], System.StringSplitOptions.RemoveEmptyEntries)
+        System.Diagnostics.Debug.WriteLine(sprintf "--> filter words = %A" tracks)
+        let users = [|
+            for word in tracks do
+                if word.Length >= 2 && word.[0] = '@' then
+                    yield word.[1..]
+        |]
+        let track = tracks |> String.concat " "
+        (users, track)
 
     // Stop listening to Twitter stream.
     member this.StopStreaming() =
@@ -106,7 +105,15 @@ type TwitterService private () =
     // Start listening to Twitter stream.
     member this.StartStreaming(filter:string) =
         let stream = Stream.CreateFilteredStream()
-        stream.AddTrack(filter)
+        let (users, track) = this.parseFilter filter
+        (*
+        for user in users do
+            let tUser = User.GetUserFromScreenName(user);
+            System.Diagnostics.Debug.WriteLine(sprintf "--> (TS) parsed user %A: %A" user tUser)
+            if tUser <> null then
+                stream.AddFollow(tUser)
+        *)
+        stream.AddTrack(track)
         stream.MatchingTweetReceived.Add(fun arg ->
             let tweet = arg.Tweet
             let user = tweet.CreatedBy.Name
@@ -131,5 +138,4 @@ type TwitterService private () =
             MessagingCenter.Send<TwitterService>(this, "streamStarted")
         )
         mStream <- Some stream
-        let task = stream.StartStreamMatchingAllConditionsAsync()
-        mListenTask <- Some task
+        stream.StartStreamMatchingAllConditionsAsync() |> ignore
