@@ -65,7 +65,7 @@ type BusinessManager private () =
                 this.SetApplicationState(ApplicationState.Authenticated)
             else
                 this.SetApplicationState(ApplicationState.LoggedOff)
-                MessagingCenter.Send<BusinessManager, string>(this, "displayWarningRequest", "User authentication failed")
+                MessagingCenter.Send<BusinessManager, string>(this, "displayWarningRequest", "Authorization failed")
 
     // Cancel an ongoing authentication.
     member this.CancelAuthentication() =

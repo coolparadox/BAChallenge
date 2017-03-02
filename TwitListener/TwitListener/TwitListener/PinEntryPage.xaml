@@ -20,9 +20,11 @@
              HorizontalTextAlignment="Center"
              FontSize="Large"/>
       <Entry x:Name="pinEntry"
-             Placeholder="Enter PIN"
+             Placeholder="Please Enter PIN"
              HorizontalOptions="FillAndExpand"
-             TextChanged="onPinEntryTextChanged"/>
+             Keyboard="Numeric"
+             HorizontalTextAlignment="Center"
+             TextChanged="onPinEntryTextChanged" />
       <Button x:Name="okButton"
               IsEnabled="false"
               Text="OK"

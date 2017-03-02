@@ -22,6 +22,9 @@ type PinEntryPage() =
         base.OnAppearing()
         pin <- None
 
+    override this.OnDisappearing() =
+        pinEntry.Text <- ""
+
     // Handle change of pin entry content.
     member this.onPinEntryTextChanged(sender:Object, args:EventArgs) = 
         okButton.IsEnabled <- String.length(pinEntry.Text) > 0

@@ -41,6 +41,7 @@ type MainPage() =
                 tweetsView.IsEnabled <- false
             | _ ->
                 filterEntry.IsEnabled <- false
+                filterEntry.Text <- ""
                 actionButton.Text <- "Start"
                 actionButton.IsEnabled <- false
                 tweetsView.IsEnabled <- false
