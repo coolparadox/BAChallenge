@@ -88,7 +88,7 @@ type MainPage() =
 
     // Handle click of 'Sign Out' menu option.
     member this.OnSignOutOptionClicked() =
-        this.DisplayAlert ("FIXME", "not yet implemented", "Bummer") |> ignore
+        businessManager.SignOut()
 
     // Handle window uncovering.
     override this.OnAppearing() =

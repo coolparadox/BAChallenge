@@ -57,7 +57,7 @@ type BusinessManager private () =
                     MessagingCenter.Send<BusinessManager>(this, "getPinFromUser")
                     Device.OpenUri(uri)
 
-    // Continue an ongoing (Pin) authentication.
+    // Continue an ongoing authentication.
     member this.GotPinFromUser(pin:string) =
         System.Diagnostics.Debug.WriteLine(sprintf "GotPinFromUser(%s)" pin)
         if mApplicationState = ApplicationState.Authenticating then
@@ -67,7 +67,7 @@ type BusinessManager private () =
                 this.SetApplicationState(ApplicationState.LoggedOff)
                 MessagingCenter.Send<BusinessManager, string>(this, "displayWarningRequest", "User authentication failed")
 
-    // Cancel an ongoing (Pin) authentication.
+    // Cancel an ongoing authentication.
     member this.CancelAuthentication() =
         if mApplicationState = ApplicationState.Authenticating then
             twitterServiceManager.CancelPinAuthorization()
@@ -80,6 +80,12 @@ type BusinessManager private () =
     // Are we authenticated?
     member this.IsAuthenticated() =
         mApplicationState >= ApplicationState.Authenticated
+
+    // Sign out from twitter
+    member this.SignOut() =
+        if this.IsAuthenticated() then
+            twitterServiceManager.InvalidateUserCredentials() |> ignore
+            this.SetApplicationState(ApplicationState.LoggedOff)
 
     // Add a new tweet.
     member this.AddTweet(tweet:Tweet) =

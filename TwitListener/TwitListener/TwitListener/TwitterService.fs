@@ -80,9 +80,4 @@ type TwitterServiceManager private () =
 
     // Invalidade user access credentials.
     member this.InvalidateUserCredentials() =
-        match mUserCredential with
-            | None -> Auth.InvalidateCredentials()
-            | Some userCredential ->
-                let twitterCredentials = Auth.CreateCredentials(consumerCredential.key, consumerCredential.secret, userCredential.key, userCredential.secret)
-                mUserCredential <- None
-                Auth.InvalidateCredentials(twitterCredentials)
+        mUserCredential <- None
