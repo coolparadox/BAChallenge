@@ -61,23 +61,16 @@ type BusinessManager private () =
     member this.GotPinFromUser(pin:string) =
         System.Diagnostics.Debug.WriteLine(sprintf "GotPinFromUser(%s)" pin)
         if mApplicationState = ApplicationState.Authenticating then
-            this.SetApplicationState(ApplicationState.Authenticated)
-        (*
-        if mApplicationState = ApplicationState.Authenticating then
-            let userCredentials = Tweetinvi.AuthFlow.CreateCredentialsFromVerifierCode(pin, authenticationContext.Value)
-            match userCredentials with
-            | null ->
-                this.setApplicationState(ApplicationState.LoggedOff)
-                MessagingCenter.Send<BusinessManager>(this, "authenticationFailed")
-            | _ ->
-            //Tweetinvi.Auth.SetCredentials(userCredentials)
-            //let authenticatedUser = Tweetinvi.User.GetAuthenticatedUser()
-            this.setApplicationState(ApplicationState.Authenticated)
-        *)
+            if twitterServiceManager.ResumePinAuthorization(pin) then
+                this.SetApplicationState(ApplicationState.Authenticated)
+            else
+                this.SetApplicationState(ApplicationState.LoggedOff)
+                MessagingCenter.Send<BusinessManager, string>(this, "displayWarningRequest", "User authentication failed")
 
     // Cancel an ongoing (Pin) authentication.
     member this.CancelAuthentication() =
         if mApplicationState = ApplicationState.Authenticating then
+            twitterServiceManager.CancelPinAuthorization()
             this.SetApplicationState(ApplicationState.LoggedOff)
 
     // Are we authenticating?

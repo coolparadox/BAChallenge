@@ -48,7 +48,7 @@ type MainPage() =
 
     // Warn about failure in authentication.
     member this.onDisplayWarningRequest(message:string) =
-        this.DisplayAlert ("Warning", message, "Ok") |> ignore
+        this.DisplayAlert ("Warning", message, "Bummer") |> ignore
 
     // Handle updates in tweet list.
     member this.onTweetListChanged(tweets:Tweet list) =

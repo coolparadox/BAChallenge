@@ -16,9 +16,11 @@ type TwitterServiceManager private () =
 
     // State variables
     let mutable mAuthorizationCredential : Credential option = None
+    let mutable mUserCredential : Credential option = None
 
     // Storage keys for persisting state
     let storeKeyAuthCredential = "authorizationCredential"
+    let storeKeyUserCredential = "userCredential"
 
     // Export TwitterServiceManager.Instance
     static let instance = TwitterServiceManager()
@@ -26,26 +28,25 @@ type TwitterServiceManager private () =
 
     // Save state variables.
     member this.SaveState() =
-        //System.Diagnostics.Debug.WriteLine(sprintf "--> authorizationCredential state is %A" mAuthorizationCredential)
         Application.Current.Properties.Add(storeKeyAuthCredential, mAuthorizationCredential)
-        //System.Diagnostics.Debug.WriteLine(sprintf "--> application property keys %A" (Application.Current.Properties.Keys))
-        //System.Diagnostics.Debug.WriteLine(sprintf "--> application property values %A" (Application.Current.Properties.Values))
+        Application.Current.Properties.Add(storeKeyUserCredential, mUserCredential)
 
     // Load state variables.
     member this.LoadState() =
-        //mAuthorizationCredential <- None
-        //System.Diagnostics.Debug.WriteLine(sprintf "--> application property keys %A" (Application.Current.Properties.Keys))
-        //System.Diagnostics.Debug.WriteLine(sprintf "--> application property values %A" (Application.Current.Properties.Values))
-        if Application.Current.Properties.ContainsKey(storeKeyAuthCredential) then
-            mAuthorizationCredential <- Application.Current.Properties.Item(storeKeyAuthCredential) :?> Credential option
-        //else
-        //    System.Diagnostics.Debug.WriteLine(sprintf "--> application property key %s not found" "authorizationCredential")
-        //System.Diagnostics.Debug.WriteLine(sprintf "--> authorizationCredential recovered %A" mAuthorizationCredential)
+        mAuthorizationCredential <-
+            if Application.Current.Properties.ContainsKey(storeKeyAuthCredential) then
+                Application.Current.Properties.Item(storeKeyAuthCredential) :?> Credential option
+            else None
+        mUserCredential <-
+            if Application.Current.Properties.ContainsKey(storeKeyUserCredential) then
+                Application.Current.Properties.Item(storeKeyUserCredential) :?> Credential option
+            else None
 
-    // Start new pin authorization process with Twitter
+    // Start new (PIN) authorization process with Twitter
+    // Answers a URL for getting a PIN.
     member this.StartPinAuthorization() =
         let applicationCredential = Auth.SetApplicationOnlyCredentials(consumerCredential.key, consumerCredential.secret)
-        let context = AuthFlow.InitAuthentication applicationCredential
+        let context = AuthFlow.InitAuthentication(applicationCredential)
         mAuthorizationCredential <- 
             match context with
                 | null -> None
@@ -55,3 +56,33 @@ type TwitterServiceManager private () =
         match context with
             | null -> None
             | _ -> Some (System.Uri(context.AuthorizationURL))
+
+    // Cancel PIN authorization process.
+    member this.CancelPinAuthorization() =
+        mAuthorizationCredential <- None
+
+    // Continue PIN authorization process.
+    // Answers if authorization was successfull.
+    member this.ResumePinAuthorization(pin:string) =
+        match mAuthorizationCredential with
+            | None -> false
+            | Some authorizationCredential ->
+                let twitterCredentials = AuthFlow.CreateCredentialsFromVerifierCode(pin, authorizationCredential.key, authorizationCredential.secret, consumerCredential.key, consumerCredential.secret)
+                mAuthorizationCredential <- None
+                match twitterCredentials with
+                    | null ->
+                        mUserCredential <- None
+                        false
+                    | _ ->
+                       mUserCredential <- Some { key = twitterCredentials.AccessToken; secret = twitterCredentials.AccessTokenSecret }
+                       Auth.SetCredentials(twitterCredentials)
+                       true
+
+    // Invalidade user access credentials.
+    member this.InvalidateUserCredentials() =
+        match mUserCredential with
+            | None -> Auth.InvalidateCredentials()
+            | Some userCredential ->
+                let twitterCredentials = Auth.CreateCredentials(consumerCredential.key, consumerCredential.secret, userCredential.key, userCredential.secret)
+                mUserCredential <- None
+                Auth.InvalidateCredentials(twitterCredentials)

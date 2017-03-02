@@ -12,7 +12,11 @@
     <StackLayout VerticalOptions="FillAndExpand"
                  HorizontalOptions="FillAndExpand"
                  Orientation="Vertical" >
-      <Label Text="Twitter Authorization"
+            <Label Text="Brick Abode Twitter Listener"
+                   HorizontalTextAlignment="Center"
+                   FontAttributes="Bold"
+                   FontSize="Large"/>
+            <Label Text="Twitter Authorization"
              HorizontalTextAlignment="Center"
              FontSize="Large"/>
       <Entry x:Name="pinEntry"
