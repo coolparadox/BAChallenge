@@ -60,7 +60,7 @@ type App() =
         base.OnStart()
         myNav.Popped.Add(fun args -> this.OnPopped(myNav, args))
         this.SetupApp()
-        appManager.ApplicationRecover()
+        appManager.RecoverState()
         if appManager.IsAuthenticating() then
             appManager.CancelAuthentication()
 
@@ -68,14 +68,15 @@ type App() =
     override this.OnSleep() =
         System.Diagnostics.Debug.WriteLine("OnSleep()");
         base.OnSleep()
-        appManager.ApplicationSleep()
+        if appManager.CurrentState = ApplicationState.Listening then
+            appManager.StopListening()
 
     // Handle application resume
     override this.OnResume() =
         System.Diagnostics.Debug.WriteLine("OnResume()");
         base.OnResume()
         this.SetupApp()
-        appManager.ApplicationRecover()
+        appManager.RecoverState()
         if appManager.IsAuthenticating() then
             System.Diagnostics.Debug.WriteLine(sprintf "--> we were authenticating; request PIN again")
             this.getPinFromUser()

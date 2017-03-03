@@ -25,20 +25,21 @@ type ApplicationManager private () =
     // Application state getter.
     member this.CurrentState =
         mApplicationState
-    
-    // Prepare application to go to bed.
-    member this.ApplicationSleep() =
-        if mApplicationState = ApplicationState.Listening then
-            // Close network connection
-            twitterService.StopStreaming()
-            mApplicationState <- ApplicationState.Authenticated
+
+    // Persist application state.
+    // Call this immediately after important checkpoints during operation.
+    // https://developer.xamarin.com/guides/xamarin-forms/application-fundamentals/application-class/#Properties_Dictionary
+    member this.SaveState() =
         Application.Current.Properties.Clear()
         twitterService.SaveState()
-        Application.Current.Properties.Add(storeKeyAppState, mApplicationState)
+        if mApplicationState = ApplicationState.Listening then
+            Application.Current.Properties.Add(storeKeyAppState, ApplicationState.Authenticated)
+        else
+            Application.Current.Properties.Add(storeKeyAppState, mApplicationState)
         Application.Current.SavePropertiesAsync() |> ignore
 
     // Wake up from sleep.
-    member this.ApplicationRecover() =
+    member this.RecoverState() =
         twitterService.LoadState()
         if Application.Current.Properties.ContainsKey(storeKeyAppState) then
             mApplicationState <- Application.Current.Properties.Item(storeKeyAppState) :?> ApplicationState
@@ -49,6 +50,7 @@ type ApplicationManager private () =
         if state <> mApplicationState then
             System.Diagnostics.Debug.WriteLine(sprintf "TwitListener app state %A -> %A" mApplicationState state)
             mApplicationState <- state
+            this.SaveState()
             // Notify subscribers that application state was changed.
             Device.BeginInvokeOnMainThread(fun _ -> MessagingCenter.Send<ApplicationManager, ApplicationState> (this, "onApplicationStateChanged", mApplicationState))
 
