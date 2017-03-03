@@ -42,23 +42,26 @@ type MainPage() =
     member this.UpdateVisibilityOfComponents(state:ApplicationState) =
         match state with
             | ApplicationState.Authenticating ->
+                filterEntry.Placeholder <- "Please sign in"
                 filterEntry.IsEnabled <- false
                 actionButton.Text <- "Start"
                 actionButton.IsEnabled <- false
                 tweetsView.IsEnabled <- false
             | ApplicationState.Authenticated ->
+                filterEntry.Placeholder <- "enter filter text"
                 filterEntry.IsEnabled <- true
                 actionButton.Text <- "Start"
                 actionButton.IsEnabled <- not (String.IsNullOrWhiteSpace(filterEntry.Text))
                 tweetsView.IsEnabled <- true
             | ApplicationState.Listening ->
+                filterEntry.Placeholder <- "enter filter text"
                 filterEntry.IsEnabled <- false
                 actionButton.Text <- "Stop"
                 actionButton.IsEnabled <- true
                 tweetsView.IsEnabled <- true
             | _ ->
+                filterEntry.Placeholder <- "Please sign in"
                 filterEntry.IsEnabled <- false
-                filterEntry.Text <- ""
                 actionButton.Text <- "Start"
                 actionButton.IsEnabled <- false
                 tweetsView.IsEnabled <- false

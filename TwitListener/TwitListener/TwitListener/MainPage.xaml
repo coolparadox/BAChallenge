@@ -18,7 +18,7 @@
                    FontSize="Large"/>
             <StackLayout Orientation="Horizontal">
                 <Entry x:Name="filterEntry"
-                       Placeholder="filter1 filter2 ..."
+                       Placeholder="Please sign in"
                        HorizontalOptions="FillAndExpand"
                        IsEnabled="false"
                         TextChanged="OnFilterEntryTextChanged" />
