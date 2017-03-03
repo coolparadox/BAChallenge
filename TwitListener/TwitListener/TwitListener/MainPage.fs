@@ -38,8 +38,8 @@ type MainPage() =
             this.ToolbarItems.Add(ToolbarItem("Sign In", "", (fun _ -> this.OnSignInOptionClicked()), ToolbarItemOrder.Default, 0))
         this.ToolbarItems.Add(ToolbarItem("About", "", (fun _ -> this.OnAboutOptionClicked()), ToolbarItemOrder.Default, 10))
 
-    // Propagate changes in application state to UI components.
-    member this.onApplicationStateChanged(state:ApplicationState) =
+    // Update visibility of UI components
+    member this.UpdateVisibilityOfComponents(state:ApplicationState) =
         match state with
             | ApplicationState.Authenticating ->
                 filterEntry.IsEnabled <- false
@@ -63,6 +63,10 @@ type MainPage() =
                 actionButton.IsEnabled <- false
                 tweetsView.IsEnabled <- false
         this.RefreshToolbar()
+
+    // Propagate changes in application state to UI components.
+    member this.onApplicationStateChanged(state:ApplicationState) =
+        this.UpdateVisibilityOfComponents(state)
         if state = ApplicationState.Listening then
             MessagingCenter.Subscribe<ApplicationManager, StrippedTweet>(this, "tweetReceived", (fun _ tweet ->
                 this.OnTweetReceived(tweet)
@@ -106,7 +110,7 @@ type MainPage() =
     // Handle window uncovering.
     override this.OnAppearing() =
         base.OnAppearing()
-        this.RefreshToolbar()
+        this.UpdateVisibilityOfComponents(appManager.CurrentState)
 
     // Handle change of filter entry content.
     member this.OnFilterEntryTextChanged(sender:Object, args:EventArgs) = 
